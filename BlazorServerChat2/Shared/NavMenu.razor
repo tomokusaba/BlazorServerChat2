@@ -1,0 +1,68 @@
+﻿@inject AuthenticationStateProvider AuthenticationStateProvider
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">あびや</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> あびやチャット
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="config">
+                <span class="oi oi-plus" aria-hidden="true"></span> あびや設定
+            </NavLink>
+        </div>
+        @if (menu)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="neta">
+                    <span class="oi oi-plus" aria-hidden="true"></span> ネタ追加
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="upload">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> アイコンアップロード
+            </NavLink>
+        </div>
+        }
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private string? user;
+    private string? email;
+    private List<string> list = new List<string>();
+    private bool menu = false;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User.Identity?.Name;
+        email = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").Select(x => x.Value).FirstOrDefault();
+        list.Add("picicon@gmail.com");
+        list.Add("tomokusaba@gmail.com");
+        if (list.Contains(email))
+        {
+            menu = true;
+        }
+        StateHasChanged();
+    }
+
+}

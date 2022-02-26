@@ -1,0 +1,12 @@
+﻿<AuthorizeView>
+    <Authorized>
+        <a href="Identity/Account/Manage">こんにちは、 @context.User.Identity?.Name　さん</a>
+        <form method="post" action="Identity/Account/LogOut">
+            <button type="submit" class="nav-link btn btn-link">ログアウト</button>
+        </form>
+    </Authorized>
+    <NotAuthorized>
+        <a href="Identity/Account/Register">あびや登録</a>
+        <a href="Identity/Account/Login">ログイン</a>
+    </NotAuthorized>
+</AuthorizeView>
