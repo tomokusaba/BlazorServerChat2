@@ -1,0 +1,34 @@
+﻿@attribute [Authorize]
+@page "/upload"
+@inject ApplicationDbContext DbContext
+
+<PageTitle>アイコンアップロード</PageTitle>
+
+@using BlazorServerChat2.Data
+@inject WeatherForecastService ForecastService
+<h1>アップロード</h1>
+<InputFile OnChange="@LoadFile" />
+@result
+@code {
+    string result;
+    private async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        IconMaster icon = new IconMaster();
+        byte[] BIcon;
+        if (!e.File.Name.Contains(".png"))
+        {
+            result = "アップロードファイルはPNGファイルのみです";
+            return;
+        }
+        using (Stream stream = e.File.OpenReadStream(2*1024*1024))
+        {
+            BIcon = new Byte[stream.Length];
+            await stream.ReadAsync(BIcon, 0, (int)stream.Length);
+        }
+        icon.Icon = BIcon;
+        icon.IconName = e.File.Name;
+        DbContext.Add(icon);
+        await DbContext.SaveChangesAsync();
+        result = "アップロードに成功しました";
+    }
+}

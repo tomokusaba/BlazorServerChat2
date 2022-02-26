@@ -1,0 +1,24 @@
+﻿@page "/log"
+@using BlazorServerChat2.Data
+
+@inject ApplicationDbContext DbContext
+<h3>あびやログ</h3>
+<RadzenDataGrid Data=@chats TItem="Chat">
+    <Columns>
+        <RadzenDataGridColumn TItem="Chat" property="Time" Title="投稿時刻" Width="20%"></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Chat" property="Name" Title="名前" Width="20%"></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Chat" property="Message" Title="投稿内容"></RadzenDataGridColumn>
+
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    IEnumerable<Chat> chats;
+
+    protected override void OnInitialized()
+    {
+        chats = DbContext.Chats.OrderByDescending(x => x.Time).ToList();
+    }
+
+}

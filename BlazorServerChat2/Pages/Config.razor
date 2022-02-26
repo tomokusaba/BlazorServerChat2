@@ -1,0 +1,86 @@
+﻿@attribute [Authorize]
+@page "/config"
+@using BlazorServerChat2.Data
+
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>あびや設定</PageTitle>
+
+<h1>あびやアイコン設定</h1>
+
+<RadzenDropDownDataGrid TValue="int" Data=@(IconMasters) PageSize="15" Change=@(args => OnChange(args)) TextProperty="IconName" ValueProperty="IconNumber" Value="value">
+    <Columns>
+        <RadzenDropDownDataGridColumn Property="IconName" />
+    </Columns>
+</RadzenDropDownDataGrid>
+@debug
+@if (@icon != null)
+{
+    <img src="data:image/png;base64,@Convert.ToBase64String(icon)" />
+}
+<RadzenColorPicker @bind-Value=@color  />
+
+<RadzenButton Text="保存" Click=SaveColor />
+@code {
+    IEnumerable<UserChatSetting> userChatSettings;
+
+    IEnumerable<IconMaster> IconMasters;
+    string debug;
+    string UserId;
+    int value;
+    string color = "rgb(0,0,0)";
+
+    byte[] icon;
+    protected override async Task OnInitializedAsync()
+    {
+        userChatSettings = DbContext.UserChatSetting.ToList();
+        IconMasters = DbContext.IconMaster.ToList();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        UserId = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Select(x => x.Value).FirstOrDefault();
+        value = DbContext.UserChatSetting.Where(x => x.Id == UserId).Select(x => x.IconNumber).ToList().SingleOrDefault(1);
+
+        icon = DbContext.IconMaster.Where(x => x.IconNumber == (int)value).Select(x => x.Icon).FirstOrDefault();
+
+        color = DbContext.UserChatSetting.Where(x => x.Id == UserId).Select(x => x.BackGroundColor).ToList().FirstOrDefault("rgb(0,0,0)");
+    }
+
+    void OnChange (object value)
+    {
+        debug = value.ToString();
+        UserChatSetting userChatSetting = new UserChatSetting();
+
+        var update = DbContext.UserChatSetting.Where(x => x.Id == UserId).FirstOrDefault();
+        if (update == null)
+        {
+            userChatSetting.Id = UserId;
+            userChatSetting.IconNumber = (int)value;
+            userChatSetting.BackGroundColor = color;
+            DbContext.Add(userChatSetting);
+        }
+        else
+        {
+            update.IconNumber = (int)value;
+        }
+        DbContext.SaveChanges();
+
+        icon = DbContext.IconMaster.Where(x => x.IconNumber == (int)value).Select(x => x.Icon).FirstOrDefault();
+    }
+    void SaveColor()
+    {
+        UserChatSetting userChatSetting = new UserChatSetting();
+        var update = DbContext.UserChatSetting.Where(x => x.Id == UserId).FirstOrDefault();
+        if (update == null)
+        {
+            userChatSetting.Id = UserId;
+            userChatSetting.IconNumber = (int)value;
+            userChatSetting.BackGroundColor = color;
+            DbContext.Add(userChatSetting);
+        }
+        else
+        {
+            update.BackGroundColor = color;
+        }
+        DbContext.SaveChanges();
+    }
+}
