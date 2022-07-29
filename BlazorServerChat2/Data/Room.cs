@@ -85,4 +85,5 @@ namespace BlazorServerChat2.Data
         private void NotifyStateChanged() => OnChange?.Invoke();
 
     }
+
 }
