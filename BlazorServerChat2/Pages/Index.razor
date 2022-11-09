@@ -170,6 +170,19 @@ else
     //private List<Message> _messages = new List<Message>();
 
     //private string _hubUrl;
+    public void Dispose()
+    {
+        //clientHub.OnChange -= StateHasChanged;
+    }
+
+
+    public void OnCallBack()
+    {
+        _ = InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
 
     /// <summary>
     /// 初期表示
@@ -182,8 +195,9 @@ else
         user = authState.User.Identity?.Name;
         UserId = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Select(x => x.Value).FirstOrDefault();
         _username = user;
-        clientHub.OnChange += StateHasChanged;
 
+        //clientHub.OnChange += StateHasChanged;
+        clientHub.OnChange += () => OnCallBack();
         // ここには落ちない想定
         if (string.IsNullOrWhiteSpace(_username))
         {
@@ -229,9 +243,8 @@ else
     /// <returns></returns>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        
         await clientHub.InitIndexPage();
-        //room.OnChange += StateHasChanged;
-
     }
 
     /// <summary>

@@ -8,7 +8,7 @@ namespace BlazorServerChat2.Data
     public class Room
     {
         private System.Timers.Timer timer;
-        public event Action OnChange;
+        //public event Action OnChange;
         /// <summary>
         /// 在室管理辞書
         /// </summary>
@@ -29,7 +29,7 @@ namespace BlazorServerChat2.Data
             {
                 CheckTime();
                 roomCount = room.Count;
-                NotifyStateChanged();
+                //NotifyStateChanged();
             };
             timer.Start();
         }
@@ -51,7 +51,7 @@ namespace BlazorServerChat2.Data
                 room.Add(userid, DateTime.Now);
             }
             roomCount = room.Count;
-            NotifyStateChanged();
+            //NotifyStateChanged();
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace BlazorServerChat2.Data
                 room.Remove((userid));
             }
             roomCount = room.Count;
-            NotifyStateChanged();
+            //NotifyStateChanged();
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace BlazorServerChat2.Data
             }
         }
 
-        private void NotifyStateChanged() => OnChange?.Invoke();
+        //private void NotifyStateChanged() => OnChange?.Invoke();
 
     }
 
