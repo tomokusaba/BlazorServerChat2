@@ -37,117 +37,117 @@
 else
 {
     // banner to show current user*@
-    <div class="alert alert-secondary mt-4" role="alert">
-        <span class="oi oi-person mr-2" aria-hidden="true"></span>
-        <span>ログインユーザ： <b>@_username</b>さん</span>
-        <button class="btn btn-sm btn-warning ml-md-auto" @onclick="DisconnectAsync">退室</button><br />
-        <span><NavLink class="nav-link" href="log">これまでのお話し</NavLink> </span><br />
-        <span>たぶん　@room.roomCount 人在室中 </span>
-    </div>
+<div class="alert alert-secondary mt-4" role="alert">
+    <span class="oi oi-person mr-2" aria-hidden="true"></span>
+    <span>ログインユーザ： <b>@_username</b>さん</span>
+    <button class="btn btn-sm btn-warning ml-md-auto" @onclick="DisconnectAsync">退室</button><br />
+    <span><NavLink class="nav-link" href="log">これまでのお話し</NavLink> </span><br />
+    <span>たぶん　@room.roomCount 人在室中 </span>
+</div>
 @*    // display messages*@
-    <div id="scrollbox">
-        <div class="container">
-            <div class="row">
-                <div class="col-9">
-                    <textarea style="width:95%;" placeholder="コメント入力欄" @bind="@_newMessage"></textarea>&nbsp;
-                </div>
-                <div class="col-3">
-                    <button class="btn btn-primary" @onclick="@(s =>SendAsync(_newMessage))">発言</button>
-                    <button class="btn btn-primary" @onclick="NetaAsync">ネタをもらう</button>
-                </div>
+<div id="scrollbox">
+    <div class="container">
+        <div class="row">
+            <div class="col-9">
+                <textarea style="width:95%;" placeholder="コメント入力欄" @bind="@_newMessage"></textarea>&nbsp;
+            </div>
+            <div class="col-3">
+                <button class="btn btn-primary" @onclick="@(s =>SendAsync(_newMessage))">発言</button>
+                <button class="btn btn-primary" @onclick="NetaAsync">ネタをもらう</button>
             </div>
         </div>
-        @foreach (var item in clientHub._messages.OrderByDescending(x => x.PostTime))
+    </div>
+    @foreach (var item in clientHub._messages.OrderByDescending(x => x.PostTime))
+    {
+        @if (item.IsNotice)
         {
-            @if (item.IsNotice)
+            <RadzenCard class="m-0" Style="background-color:#e1f7f4;">
+                <div class="container ">
+                    <div class="row">
+                        <div class="col-12">@item.Body</div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-1">
+                        </div>
+                        <div class="col-11 fs-6">
+                            @item.PostTime.ToString()
+                        </div>
+                    </div>
+
+                </div>
+            </RadzenCard>
+
+        }
+        else
+        {
+            @if (@item.Mine)
             {
-                <RadzenCard class="m-0" Style="background-color:#e1f7f4;">
-                    <div class="container ">
+                <RadzenCard class="m-0" Style="background-color:#daebf4;">
+                    <div class="container">
                         <div class="row">
-                            <div class="col-12">@item.Body</div>
+                            @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
+                            {
+                                <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
+                            }
+                            else
+                            {
+                                <div class="col-1"></div>
+                            }
+                            <div class="col-11">
+                                <div class="row">
+                                    <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
+                                    <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
 
+
+                                    <div class="row">
+
+                                        <div class="col-11 fs-6">
+                                            @item.PostTime.ToString()
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </RadzenCard>
+            }
+            else
+            {
+                <RadzenCard class="m-0" Style="background-color:white;">
+                    <div class="container">
                         <div class="row">
-                            <div class="col-1">
-                            </div>
-                            <div class="col-11 fs-6">
-                                @item.PostTime.ToString()
+                            @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
+                            {
+                                <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
+                            }
+                            else
+                            {
+                                <div class="col-1"></div>
+                            }
+                            <div class="col-11">
+                                <div class="row">
+                                    <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
+                                    <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
+
+
+                                    <div class="row">
+
+                                        <div class="col-11 fs-6">
+                                            @item.PostTime.ToString()
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
                     </div>
                 </RadzenCard>
 
             }
-            else
-            {
-                @if (@item.Mine)
-                {
-                    <RadzenCard class="m-0" Style="background-color:#daebf4;">
-                        <div class="container">
-                            <div class="row">
-                                @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
-                                {
-                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
-                                }
-                                else
-                                {
-                                    <div class="col-1"></div>
-                                }
-                                <div class="col-11">
-                                <div class="row">
-                                    <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
-                                    <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
-
-                                
-                                <div class="row">
-                                    
-                                    <div class="col-11 fs-6">
-                                        @item.PostTime.ToString()
-                                    </div>
-                                </div>
-                                </div>
-                                </div>
-                            </div>
-                        </div>
-                    </RadzenCard>
-                }
-                else
-                {
-                    <RadzenCard class="m-0" Style="background-color:white;">
-                        <div class="container">
-                            <div class="row">
-                                @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
-                                {
-                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
-                                }
-                                else
-                                {
-                                    <div class="col-1"></div>
-                                }
-                                <div class="col-11">
-                                <div class="row">
-                                    <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
-                                    <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
-
-                                
-                                <div class="row">
-                                    
-                                    <div class="col-11 fs-6">
-                                        @item.PostTime.ToString()
-                                    </div>
-                                </div>
-                                </div>
-                                </div>
-                            </div>
-                        </div>
-                    </RadzenCard>
-
-                }
-            }
         }
-        <hr />
-    </div>
+    }
+    <hr />
+</div>
 @*}
 *@
 @code {
@@ -243,7 +243,7 @@ else
     /// <returns></returns>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        
+
         await clientHub.InitIndexPage();
     }
 
@@ -287,7 +287,7 @@ else
     /// ネタ帳からネタをランダムで振る
     /// </summary>
     /// <returns></returns>
-    private async Task NetaAsync ()
+    private async Task NetaAsync()
     {
         Chat chat = new Chat();
         chat.Name = _username ?? string.Empty;
@@ -297,7 +297,7 @@ else
         DbContext.SaveChanges();
         Message message1 = new Message(_username, chat.Message, false, UserId);
 
-        await clientHub.SendAsync( message1);
+        await clientHub.SendAsync(message1);
         room.SendMsg(UserId);
         _newMessage = string.Empty;
         StateHasChanged();
