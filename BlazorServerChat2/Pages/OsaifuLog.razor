@@ -1,0 +1,27 @@
+﻿@page "/osaifu"
+@using BlazorServerChat2.Data
+
+@inject ApplicationDbContext DbContext
+
+<h3>お財布リスト</h3>
+
+@if (osaifus != null)
+{
+    <RadzenDataGrid Data=@osaifus TItem="Osaifu">
+        <Columns>
+            <RadzenDataGridColumn TItem="Osaifu" property="Name" Title="名前" ></RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Osaifu" property="Kingaku" Title="金額"></RadzenDataGridColumn>
+
+        </Columns>
+    </RadzenDataGrid>
+
+}
+
+@code {
+    IEnumerable<Osaifu> osaifus;
+
+    protected override void OnInitialized()
+    {
+        osaifus = DbContext.Osaifus.ToList();
+    }
+}

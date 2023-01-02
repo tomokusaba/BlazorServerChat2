@@ -59,10 +59,12 @@ else
     <div class="container">
         <div class="row">
             <div class="col-9">
-                <textarea style="width:95%;" placeholder="コメント入力欄" @bind="@_newMessage"></textarea>&nbsp;
+                <form @onsubmit="@(s =>SendAsync(_newMessage))">
+                <input type="text" style="width:95%;" placeholder="コメント入力欄" @bind="@_newMessage"></input>&nbsp;
+                </form>
             </div>
             <div class="col-3">
-                <button class="btn btn-primary" @onclick="@(s =>SendAsync(_newMessage))">発言</button>
+                <button class="btn btn-primary" @onclick="@(s =>SendAsync(_newMessage))" >発言</button>
                 <button class="btn btn-primary" @onclick="NetaAsync">ネタをもらう</button>
             </div>
         </div>
@@ -88,23 +90,23 @@ else
                 </div>
             </RadzenCard>
 
-        }
-        else
-        {
-            @if (@item.Mine)
+            }
+            else
             {
-                <RadzenCard class="m-0" Style="background-color:#daebf4;">
-                    <div class="container">
-                        <div class="row">
-                            @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
-                            {
-                                <div class="col-1"><img src="data:image;base64,@(Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).First().ToArray() ?? new byte[] {}))" /></div>
-                            }
-                            else
-                            {
-                                <div class="col-1"></div>
-                            }
-                            <div class="col-11">
+                @if (@item.Mine)
+                {
+                    <RadzenCard class="m-0" Style="background-color:#daebf4;">
+                        <div class="container">
+                            <div class="row">
+                                @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
+                                {
+                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
+                                }
+                                else
+                                {
+                                    <div class="col-1"></div>
+                                }
+                                <div class="col-11">
                                 <div class="row">
                                     <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
                                     <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
@@ -117,25 +119,25 @@ else
                                         </div>
                                     </div>
                                 </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </RadzenCard>
-            }
-            else
-            {
-                <RadzenCard class="m-0" Style="background-color:white;">
-                    <div class="container">
-                        <div class="row">
-                            @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
-                            {
-                                <div class="col-1"><img src="data:image;base64,@((Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).First().ToArray() ?? new byte [] {})))" /></div>
-                            }
-                            else
-                            {
-                                <div class="col-1"></div>
-                            }
-                            <div class="col-11">
+                    </RadzenCard>
+                }
+                else
+                {
+                    <RadzenCard class="m-0" Style="background-color:white;">
+                        <div class="container">
+                            <div class="row">
+                                @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
+                                {
+                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
+                                }
+                                else
+                                {
+                                    <div class="col-1"></div>
+                                }
+                                <div class="col-11">
                                 <div class="row">
                                     <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
                                     <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
@@ -177,6 +179,7 @@ else
     public string UserId;
 
     public IEnumerable<string> RoomUserName;
+
 
     Regex regex = new Regex(@"^[\w/\:.-]+;base64,");
     //public string huburi;
@@ -248,6 +251,7 @@ else
         }
 
     }
+
 
     /// <summary>
     /// SignalRハブに接続処理
@@ -332,7 +336,19 @@ else
             chat.Name = _username ?? string.Empty;
             chat.Message = message;
             chat.UserId = UserId ?? string.Empty;
+            Osaifu osaifu1 = new();
             DbContext.Chats.Add(chat);
+            var osaifu = DbContext.Osaifus.Find(_username);
+            if (osaifu != null)
+            {
+                osaifu.Kingaku = osaifu.Kingaku + 100;
+            }
+            else
+            {
+                osaifu1.Kingaku = 100;
+                osaifu1.Name = _username;
+                DbContext.Add(osaifu1);
+            }
             DbContext.SaveChanges();
             Message message1 = new Message(_username, message, true, UserId);
 
