@@ -88,23 +88,23 @@ else
                 </div>
             </RadzenCard>
 
-        }
-        else
-        {
-            @if (@item.Mine)
+            }
+            else
             {
-                <RadzenCard class="m-0" Style="background-color:#daebf4;">
-                    <div class="container">
-                        <div class="row">
-                            @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
-                            {
-                                <div class="col-1"><img src="data:image;base64,@(Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).First().ToArray() ?? new byte[] {}))" /></div>
-                            }
-                            else
-                            {
-                                <div class="col-1"></div>
-                            }
-                            <div class="col-11">
+                @if (@item.Mine)
+                {
+                    <RadzenCard class="m-0" Style="background-color:#daebf4;">
+                        <div class="container">
+                            <div class="row">
+                                @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
+                                {
+                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
+                                }
+                                else
+                                {
+                                    <div class="col-1"></div>
+                                }
+                                <div class="col-11">
                                 <div class="row">
                                     <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
                                     <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
@@ -117,25 +117,25 @@ else
                                         </div>
                                     </div>
                                 </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </RadzenCard>
-            }
-            else
-            {
-                <RadzenCard class="m-0" Style="background-color:white;">
-                    <div class="container">
-                        <div class="row">
-                            @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
-                            {
-                                <div class="col-1"><img src="data:image;base64,@((Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).First().ToArray() ?? new byte [] {})))" /></div>
-                            }
-                            else
-                            {
-                                <div class="col-1"></div>
-                            }
-                            <div class="col-11">
+                    </RadzenCard>
+                }
+                else
+                {
+                    <RadzenCard class="m-0" Style="background-color:white;">
+                        <div class="container">
+                            <div class="row">
+                                @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
+                                {
+                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
+                                }
+                                else
+                                {
+                                    <div class="col-1"></div>
+                                }
+                                <div class="col-11">
                                 <div class="row">
                                     <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
                                     <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
