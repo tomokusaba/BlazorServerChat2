@@ -14,6 +14,8 @@ namespace BlazorServerChat2.Data
         public DbSet<IconMaster> IconMaster { get; set; }
         public DbSet<UserChatSetting> UserChatSetting { get; set; }
         public DbSet<NetaMastar> NetaMastar { get; set; }
+        public DbSet<MenuMaster> MenuMaster { get; set; }
+        public DbSet<Osaifu> Osaifus { get; set; }
     }
 
     /// <summary>
@@ -100,5 +102,22 @@ namespace BlazorServerChat2.Data
         /// ネタ登録日時
         /// </summary>
         public DateTime CreateDate { get; set; } = DateTime.Now;
+    }
+
+    public class MenuMaster
+    {
+        [Key]
+        public int MenuId { get; set; }
+        public string MenuName { get; set; }
+
+        public int Price { get; set; }
+        public int WaitTime { get; set; }
+    }
+
+    public class Osaifu
+    {
+        [Key]
+        public string Name { get; set; }
+        public int Kingaku { get; set; }
     }
 }

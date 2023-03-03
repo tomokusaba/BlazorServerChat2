@@ -8,7 +8,7 @@ namespace BlazorServerChat2.Data
     public class Room
     {
         private System.Timers.Timer timer;
-        public event Action OnChange;
+        //public event Action OnChange;
         /// <summary>
         /// 在室管理辞書
         /// </summary>
@@ -17,6 +17,8 @@ namespace BlazorServerChat2.Data
         /// 在室人数
         /// </summary>
         public int roomCount = 0;
+        public IEnumerable<string> roomNames = new List<string>();
+
 
         /// <summary>
         /// コンストラクタ
@@ -29,9 +31,21 @@ namespace BlazorServerChat2.Data
             {
                 CheckTime();
                 roomCount = room.Count;
-                NotifyStateChanged();
+                //NotifyStateChanged();
             };
             timer.Start();
+        }
+
+        private IEnumerable<string> GetRoomIds()
+        {
+            var res = room.ToList();
+            List<string> names = new List<string>();
+            foreach (var room in res)
+            {
+               
+                names.Add(room.Key);
+            }
+            return names;
         }
 
         /// <summary>
@@ -51,7 +65,8 @@ namespace BlazorServerChat2.Data
                 room.Add(userid, DateTime.Now);
             }
             roomCount = room.Count;
-            NotifyStateChanged();
+            //NotifyStateChanged();
+            roomNames = GetRoomIds();
         }
 
         /// <summary>
@@ -66,7 +81,8 @@ namespace BlazorServerChat2.Data
                 room.Remove((userid));
             }
             roomCount = room.Count;
-            NotifyStateChanged();
+            //NotifyStateChanged();
+            roomNames = GetRoomIds();
         }
 
         /// <summary>
@@ -80,9 +96,11 @@ namespace BlazorServerChat2.Data
             {
                 room.Remove(x);
             }
+            roomNames = GetRoomIds();
         }
 
-        private void NotifyStateChanged() => OnChange?.Invoke();
+        //private void NotifyStateChanged() => OnChange?.Invoke();
 
     }
+
 }

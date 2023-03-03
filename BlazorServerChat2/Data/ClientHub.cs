@@ -42,6 +42,7 @@ namespace BlazorServerChat2.Data
             _room = room;
         }
 
+
         /// <summary>
         /// ページ初期表示に呼び出すメソッド
         /// SignalRHubへのコネクションがなければ張り直す
@@ -126,8 +127,12 @@ namespace BlazorServerChat2.Data
 
             _messages.Add(new Message(name, message.Body, isMine, message.UserId));
             Room = _room.room.Count;
-            NotifyStateChanged();
-            
+            try
+            {
+                NotifyStateChanged();
+                
+            } catch (Exception) { }
+
         }
 
         /// <summary>
