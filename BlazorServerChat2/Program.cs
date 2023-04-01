@@ -10,12 +10,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 username = builder.Configuration.GetSection("AppConfiguration")["UserName"];
+GptKey = builder.Configuration.GetValue<string>("Settings:OpenAIKey");
+GptUrl = builder.Configuration.GetValue<string>("Settings:OpenAIEndPoint") ?? string.Empty;
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -58,6 +61,7 @@ builder.Services.AddSingleton<AuthenticationStateProvider, RevalidatingIdentityA
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<ClientHub>();
 builder.Services.AddSingleton<Room>();
+builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
@@ -93,4 +97,6 @@ app.Run();
 partial class Program
 {
     public static string? username { get; private set; }
+    public static string? GptKey { get; private set; }
+    public static string? GptUrl { get; private set; }
 }
