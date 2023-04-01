@@ -295,7 +295,7 @@ else
     {
         if (_isChatting)
         {
-            await SendAsync($"[ほのか] {_username} さんいってらっしゃい");
+            await SendAsync($"[ほのか] {_username} さんいってらっしゃい", true);
             room.LeaveRoom(UserId);
             //await _hubConnection.StopAsync();
             //await _hubConnection.DisposeAsync();
@@ -344,7 +344,8 @@ else
         string json =
                 $$""""
                     {
-                      "messages": [{"role":"user","content":"{{message}}"}],
+                      "messages": [{"role":"system","content":"Context: - 私の名前はほのかです。"},
+                       {"role":"user","content":"{{message}}"}],
                       "temperature": 1,
                       "top_p": 0.5,
                       "frequency_penalty": 0,
@@ -419,11 +420,11 @@ else
     /// </summary>
     /// <param name="message">発言内容</param>
     /// <returns></returns>
-    private async Task SendAsync(string message)
+    private async Task SendAsync(string message, bool IsSystem = false)
     {
         if (_isChatting && !string.IsNullOrWhiteSpace(message))
         {
-            if (message.StartsWith("[ほのか]"))
+            if (message.StartsWith("[ほのか]") && !IsSystem)
             {
                 return;
             }

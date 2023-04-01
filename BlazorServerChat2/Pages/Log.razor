@@ -7,7 +7,18 @@
     <Columns>
         <RadzenDataGridColumn TItem="Chat" property="Time" Title="投稿時刻" Width="20%"></RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="Chat" property="Name" Title="名前" Width="20%"></RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="Chat" property="Message" Title="投稿内容"></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Chat" property="Message" Title="投稿内容">
+            <Template Context="data">
+                @if (data.Message.StartsWith("[ほのか]"))
+                {
+                    @((MarkupString)data.Message)
+                }
+                else
+                {
+                    @data.Message
+                }
+            </Template>
+        </RadzenDataGridColumn>
 
     </Columns>
 </RadzenDataGrid>

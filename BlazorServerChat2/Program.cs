@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
-using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +21,7 @@ GptUrl = builder.Configuration.GetValue<string>("Settings:OpenAIEndPoint") ?? st
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
 var RedisConnString = builder.Configuration.GetConnectionString("Redis");
 builder.Services.AddDistributedRedisCache(options =>
 {
@@ -35,29 +35,41 @@ builder.Services.AddSession(options =>
     options.Cookie.Name = "YourAppCookieName";
     options.IdleTimeout = TimeSpan.FromDays(1000);
     options.Cookie.HttpOnly = true;
+
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-builder.Services.AddDefaultIdentity<IdentityUser>(@ options =>{ options.SignIn.RequireConfirmedAccount = true;
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+{ 
+    options.SignIn.RequireConfirmedAccount = true;
     options.User.AllowedUserNameCharacters = null;
     
 })
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
     options.Cookie.Name = "YourAppCookieName";
     options.Cookie.HttpOnly = true;
     options.ExpireTimeSpan = TimeSpan.FromDays(1000);
-    
+
     options.LoginPath = "/Identity/Account/Login";
     // ReturnUrlParameter requires 
     //using Microsoft.AspNetCore.Authentication.Cookies;
     options.ReturnUrlParameter = CookieAuthenticationDefaults.ReturnUrlParameter;
     options.SlidingExpiration = true;
 });
+
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.FromDays(3);
+    
+});
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+
+builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<ClientHub>();
 builder.Services.AddSingleton<Room>();
@@ -70,11 +82,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
+    //app.UseForwardedHeaders();
 }
 else
 {
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    //app.UseForwardedHeaders();
+
     app.UseHsts();
 }
 app.MapBlazorHub();
@@ -82,7 +97,7 @@ app.MapHub<BlazorChatHub>(BlazorChatHub.HubUrl);
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
-
+//app.UseCookiePolicy();
 app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
