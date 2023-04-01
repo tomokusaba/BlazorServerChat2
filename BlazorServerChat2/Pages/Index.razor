@@ -1,6 +1,7 @@
 ﻿@attribute [Authorize]
 @page "/"
 @using BlazorServerChat2.Hubs
+@using Markdig;
 @using Microsoft.AspNetCore.Identity
 @using BlazorServerChat2.Areas.Identity
 @using BlazorServerChat2.Data
@@ -8,11 +9,14 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.Text.RegularExpressions;
+@using System.Text;
+@using ConsoleApp15;
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager navigationManager
 @inject ApplicationDbContext DbContext
 @inject ClientHub clientHub
 @inject Room room
+@inject HttpClient http
 
 <PageTitle>あびや</PageTitle>
 
@@ -65,6 +69,7 @@ else
             </div>
             <div class="col-3">
                 <button class="btn btn-primary" @onclick="@(s =>SendAsync(_newMessage))" >発言</button>
+                <button class="btn btn-primary" @onclick="@(s =>TalkGPT(_newMessage))">ほのかさんに話しかける</button>
                 <button class="btn btn-primary" @onclick="NetaAsync">ネタをもらう</button>
             </div>
         </div>
@@ -76,7 +81,7 @@ else
             <RadzenCard class="m-0" Style="background-color:#e1f7f4;">
                 <div class="container ">
                     <div class="row">
-                        <div class="col-12">@item.Body</div>
+                        <div class="col-12">@((MarkupString)item.Body)</div>
 
                     </div>
                     <div class="row">
@@ -100,7 +105,7 @@ else
                             <div class="row">
                                 @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
                                 {
-                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
+                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault()!)" /></div>
                                 }
                                 else
                                 {
@@ -131,7 +136,7 @@ else
                             <div class="row">
                                 @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
                                 {
-                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
+                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault()!)" /></div>
                                 }
                                 else
                                 {
@@ -168,17 +173,17 @@ else
     private bool _isChatting = false;
 
     // name of the user who will be chatting
-    private string _username;
+    private string _username = string.Empty;
 
     // on-screen message
-    private string _message;
+    private string _message = string.Empty;
 
     // new message input
-    private string _newMessage;
+    private string _newMessage = string.Empty;
 
-    public string UserId;
+    public string UserId = string.Empty;
 
-    public IEnumerable<string> RoomUserName;
+    public IEnumerable<string>? RoomUserName;
 
 
     Regex regex = new Regex(@"^[\w/\:.-]+;base64,");
@@ -209,8 +214,8 @@ else
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        user = authState.User.Identity?.Name;
-        UserId = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Select(x => x.Value).FirstOrDefault();
+        user = authState!.User.Identity?.Name!;
+        UserId = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Select(x => x.Value).FirstOrDefault()!;
         _username = user;
 
         //clientHub.OnChange += StateHasChanged;
@@ -314,21 +319,55 @@ else
         chat.UserId = UserId ?? string.Empty;
         DbContext.Chats.Add(chat);
         DbContext.SaveChanges();
-        Message message1 = new Message(_username, chat.Message, false, UserId);
+        Message message1 = new Message(_username ?? string.Empty, chat.Message, false, UserId ?? string.Empty);
 
         await clientHub.SendAsync(message1);
-        room.SendMsg(UserId);
+        room.SendMsg(UserId ?? string.Empty);
         _newMessage = string.Empty;
         StateHasChanged();
     }
 
     /// <summary>
-    /// メッセージ送信
-    /// ここではメッセージ内容をつくりメッセージ送信そのものはクライアント接続管理クラスにて行う
+    /// GPTChatに送信
     /// </summary>
-    /// <param name="message">発言内容</param>
+    /// <param name="message"></param>
     /// <returns></returns>
-    private async Task SendAsync(string message)
+    private async Task<string> SendGptChat(string message)
+    {
+        HttpRequestMessage requestMessage = new HttpRequestMessage();
+        requestMessage.Method = HttpMethod.Post;
+        requestMessage.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+        requestMessage.Headers.Add("api-key", Program.GptKey);
+
+        requestMessage.RequestUri = new Uri(Program.GptUrl!);
+
+        string json =
+                $$""""
+                    {
+                      "messages": [{"role":"user","content":"{{message}}"}],
+                      "temperature": 1,
+                      "top_p": 0.5,
+                      "frequency_penalty": 0,
+                      "presence_penalty": 0,
+                      "max_tokens": 2000,
+                      "stop": null
+                    }
+                   """";
+        byte[] bytes = Encoding.UTF8.GetBytes(json);
+
+        HttpContent content = new ByteArrayContent(bytes);
+        requestMessage.Content = content;
+        var res = http.Send(requestMessage);
+        var body = await res.Content.ReadAsStringAsync();
+        var data = System.Text.Json.JsonSerializer.Deserialize<Response>(body);
+        var pipiline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseBootstrap().UseAutoLinks().Build();
+        string Response = Markdown.ToHtml(data!.choices[0].message.content, pipiline);
+
+        return Response;
+
+    }
+
+    private async Task TalkGPT(string message)
     {
         if (_isChatting && !string.IsNullOrWhiteSpace(message))
         {
@@ -350,10 +389,66 @@ else
                 DbContext.Add(osaifu1);
             }
             DbContext.SaveChanges();
-            Message message1 = new Message(_username, message, true, UserId);
+            Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);
 
             await clientHub.SendAsync(message1);
-            room.SendMsg(UserId);
+            room.SendMsg(UserId ?? string.Empty);
+            _newMessage = string.Empty;
+            StateHasChanged();
+            string response = await SendGptChat(message);
+            chat = new();
+            chat.Name = _username ?? string.Empty;
+            chat.Message = $"[ほのか] : {_username}さん{response}";
+            chat.UserId = UserId ?? string.Empty;
+            DbContext.Chats.Add(chat);
+            DbContext.SaveChanges();
+            Message message2 = new Message(_username ?? string.Empty, chat.Message, false, UserId ?? string.Empty);
+
+            await clientHub.SendAsync(message2);
+            room.SendMsg(UserId ?? string.Empty);
+            _newMessage = string.Empty;
+            StateHasChanged();
+
+        }
+
+    }
+
+    /// <summary>
+    /// メッセージ送信
+    /// ここではメッセージ内容をつくりメッセージ送信そのものはクライアント接続管理クラスにて行う
+    /// </summary>
+    /// <param name="message">発言内容</param>
+    /// <returns></returns>
+    private async Task SendAsync(string message)
+    {
+        if (_isChatting && !string.IsNullOrWhiteSpace(message))
+        {
+            if (message.StartsWith("[ほのか]"))
+            {
+                return;
+            }
+            Chat chat = new Chat();
+            chat.Name = _username ?? string.Empty;
+            chat.Message = message;
+            chat.UserId = UserId ?? string.Empty;
+            Osaifu osaifu1 = new();
+            DbContext.Chats.Add(chat);
+            var osaifu = DbContext.Osaifus.Find(_username);
+            if (osaifu != null)
+            {
+                osaifu.Kingaku = osaifu.Kingaku + 100;
+            }
+            else
+            {
+                osaifu1.Kingaku = 100;
+                osaifu1.Name = _username;
+                DbContext.Add(osaifu1);
+            }
+            DbContext.SaveChanges();
+            Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);
+
+            await clientHub.SendAsync(message1);
+            room.SendMsg(UserId ?? string.Empty);
             _newMessage = string.Empty;
             StateHasChanged();
         }
