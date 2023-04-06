@@ -12,20 +12,21 @@
   <ItemGroup>
     <PackageReference Include="Blazor.Markdown" Version="1.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="7.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="7.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.4">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.10">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Caching.Redis" Version="2.2.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="7.0.5" />
-    <PackageReference Include="Radzen.Blazor" Version="4.8.3" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="0.21.230828.2-preview" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="7.0.9" />
+    <PackageReference Include="Radzen.Blazor" Version="4.15.9" />
   </ItemGroup>
 
 </Project>

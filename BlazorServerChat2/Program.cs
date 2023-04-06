@@ -1,6 +1,8 @@
 using BlazorServerChat2.Areas.Identity;
 using BlazorServerChat2.Data;
 using BlazorServerChat2.Hubs;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -10,12 +12,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-username = builder.Configuration.GetSection("AppConfiguration")["UserName"];
+Username = builder.Configuration.GetSection("AppConfiguration")["UserName"];
 GptKey = builder.Configuration.GetValue<string>("Settings:OpenAIKey");
 GptUrl = builder.Configuration.GetValue<string>("Settings:OpenAIEndPoint") ?? string.Empty;
 
@@ -42,7 +46,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 { 
     options.SignIn.RequireConfirmedAccount = true;
-    options.User.AllowedUserNameCharacters = null;
+    options.User.AllowedUserNameCharacters = null!;
     
 })
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -74,9 +78,53 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<ClientHub>();
 builder.Services.AddSingleton<Room>();
 builder.Services.AddSingleton<HttpClient>();
+builder.Services.AddSingleton<SemanticKernelLogic>();
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddApplicationInsights();
+builder.Logging.AddFilter("Microsoft.SemanticKernel", LogLevel.Trace);
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
 builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
+var _telemetryClient = app.Services.GetRequiredService<TelemetryClient>();
+
+var meterListener = new MeterListener();
+
+meterListener.InstrumentPublished = (Instrument, listener) =>
+{
+    if (Instrument.Meter.Name.StartsWith("Microsoft.SemanticKernel", StringComparison.Ordinal))
+    {
+        listener.EnableMeasurementEvents(Instrument);
+    }
+    if (Instrument.Meter.Name.StartsWith("SemanticKernelLogic", StringComparison.Ordinal))
+    {
+        listener.EnableMeasurementEvents(Instrument);
+    }
+    if (Instrument.Meter.Name.StartsWith("AzureChatCompletion", StringComparison.Ordinal))
+    {
+        listener.EnableMeasurementEvents(Instrument);
+    }
+
+};
+
+meterListener.SetMeasurementEventCallback<double>((instrument, measurment, tags, state) =>
+{
+    _telemetryClient.GetMetric(instrument.Name).TrackValue(measurment);
+});
+
+meterListener.Start();
+
+
+_telemetryClient.StartOperation<DependencyTelemetry>("ApplicationInsights.Example");
+var activityListener = new ActivityListener();
+
+activityListener.ShouldListenTo =
+    activitySource => activitySource.Name.StartsWith("Microsoft.SemanticKernel", StringComparison.Ordinal)
+    || activitySource.Name.StartsWith("AzureChatCompletion", StringComparison.Ordinal);
+
+ActivitySource.AddActivityListener(activityListener);
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -111,7 +159,7 @@ app.Run();
 
 partial class Program
 {
-    public static string? username { get; private set; }
+    public static string? Username { get; private set; }
     public static string? GptKey { get; private set; }
     public static string? GptUrl { get; private set; }
 }

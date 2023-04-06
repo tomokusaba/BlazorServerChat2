@@ -17,6 +17,7 @@
 @inject ClientHub clientHub
 @inject Room room
 @inject HttpClient http
+@inject SemanticKernelLogic semanticKernelLogic
 
 <PageTitle>あびや</PageTitle>
 
@@ -319,6 +320,7 @@ else
         chat.UserId = UserId ?? string.Empty;
         DbContext.Chats.Add(chat);
         DbContext.SaveChanges();
+        semanticKernelLogic.NonGenerateMessage(chat.Message);
         Message message1 = new Message(_username ?? string.Empty, chat.Message, false, UserId ?? string.Empty);
 
         await clientHub.SendAsync(message1);
@@ -396,7 +398,8 @@ else
             room.SendMsg(UserId ?? string.Empty);
             _newMessage = string.Empty;
             StateHasChanged();
-            string response = await SendGptChat(message);
+            //string response = await SendGptChat(message);
+            string response = await semanticKernelLogic.Run(message);
             chat = new();
             chat.Name = _username ?? string.Empty;
             chat.Message = $"[ほのか] : {_username}さん{response}";
@@ -434,6 +437,7 @@ else
             chat.UserId = UserId ?? string.Empty;
             Osaifu osaifu1 = new();
             DbContext.Chats.Add(chat);
+            semanticKernelLogic.NonGenerateMessage(message);
             var osaifu = DbContext.Osaifus.Find(_username);
             if (osaifu != null)
             {
