@@ -12,9 +12,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
-using System.Configuration;
+<<<<<<<<< Temporary merge branch 1
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+=========
+using System.Configuration;
+>>>>>>>>> Temporary merge branch 2
 
 var builder = WebApplication.CreateBuilder(args);
 
