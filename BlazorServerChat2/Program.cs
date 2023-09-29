@@ -12,18 +12,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
-<<<<<<<<< Temporary merge branch 1
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-=========
-using System.Configuration;
->>>>>>>>> Temporary merge branch 2
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-username = builder.Configuration.GetSection("AppConfiguration")["UserName"];
+Username = builder.Configuration.GetSection("AppConfiguration")["UserName"];
+GptKey = builder.Configuration.GetValue<string>("Settings:OpenAIKey");
+GptUrl = builder.Configuration.GetValue<string>("Settings:OpenAIEndPoint") ?? string.Empty;
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -46,10 +44,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
-{ 
+{
     options.SignIn.RequireConfirmedAccount = true;
     options.User.AllowedUserNameCharacters = null!;
-    
+
 })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
@@ -70,7 +68,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
     options.ValidationInterval = TimeSpan.FromDays(3);
-    
+
 });
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
@@ -79,6 +77,13 @@ builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuth
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<ClientHub>();
 builder.Services.AddSingleton<Room>();
+builder.Services.AddSingleton<HttpClient>();
+builder.Services.AddSingleton<SemanticKernelLogic>();
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddApplicationInsights();
+builder.Logging.AddFilter("Microsoft.SemanticKernel", LogLevel.Trace);
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
 builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
@@ -154,5 +159,7 @@ app.Run();
 
 partial class Program
 {
-    public static string? username { get; private set; }
+    public static string? Username { get; private set; }
+    public static string? GptKey { get; private set; }
+    public static string? GptUrl { get; private set; }
 }
