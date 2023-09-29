@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace BlazorServerChat2.Areas.Identity.Pages.Account
 {
@@ -114,6 +116,22 @@ namespace BlazorServerChat2.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+            //        var claims = new List<Claim>
+            //        {
+            //            new Claim(ClaimTypes.Name, Input.Email),
+            //            new Claim("FullName", Input.Email),
+            //            new Claim(ClaimTypes.Role, "Administrator"),
+            //        };
+            //        var clamesIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            //        var authProp = new AuthenticationProperties
+            //        {
+            //            IsPersistent = true,
+            //        }
+            //        ;
+            //        await HttpContext.SignInAsync(
+            //CookieAuthenticationDefaults.AuthenticationScheme,
+            //new ClaimsPrincipal(clamesIdentity),
+            //authProp);
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)

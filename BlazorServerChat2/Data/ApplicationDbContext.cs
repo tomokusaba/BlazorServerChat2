@@ -57,7 +57,7 @@ namespace BlazorServerChat2.Data
         /// <summary>
         /// アイコンデータ
         /// </summary>
-        public byte[] Icon { get; set; }
+        public byte[]? Icon { get; set; }
         /// <summary>
         /// アイコンファイル名
         /// </summary>
@@ -73,7 +73,7 @@ namespace BlazorServerChat2.Data
         /// ユーザID
         /// </summary>
         [Key]
-        public string Id { get; set; }
+        public string? Id { get; set; }
         /// <summary>
         /// アイコン登録連番
         /// </summary>
@@ -97,7 +97,7 @@ namespace BlazorServerChat2.Data
         /// <summary>
         /// ネタ本体
         /// </summary>
-        public string Neta { get; set; }
+        public string? Neta { get; set; }
         /// <summary>
         /// ネタ登録日時
         /// </summary>
@@ -108,7 +108,7 @@ namespace BlazorServerChat2.Data
     {
         [Key]
         public int MenuId { get; set; }
-        public string MenuName { get; set; }
+        public string? MenuName { get; set; }
 
         public int Price { get; set; }
         public int WaitTime { get; set; }
@@ -117,7 +117,7 @@ namespace BlazorServerChat2.Data
     public class Osaifu
     {
         [Key]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public int Kingaku { get; set; }
     }
 }
