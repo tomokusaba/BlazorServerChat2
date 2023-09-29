@@ -17,6 +17,7 @@
 @inject ClientHub clientHub
 @inject Room room
 @inject HttpClient http
+@inject SemanticKernelLogic semanticKernelLogic
 
 <PageTitle>あびや</PageTitle>
 
@@ -47,13 +48,15 @@ else
     <span>ログインユーザ： <b>@_username</b>さん</span>
     <button class="btn btn-sm btn-warning ml-md-auto" @onclick="DisconnectAsync">退室</button><br />
     <span><NavLink class="nav-link" href="log">これまでのお話し</NavLink> </span><br />
-    <span>たぶん　@room.roomCount 人在室中
+    <span>
+        たぶん　@room.roomCount 人在室中
         @if (room.roomNames != null)
         {
             @foreach (var Item in room.roomNames)
             {
                 <span>
-                    @DbContext.Users.Find(Item) さん　</span>
+                    @DbContext.Users.Find(Item) さん　
+                </span>
             }
         }
     </span>
@@ -64,11 +67,11 @@ else
         <div class="row">
             <div class="col-9">
                 <form @onsubmit="@(s =>SendAsync(_newMessage))">
-                <input type="text" style="width:95%;" placeholder="コメント入力欄" @bind="@_newMessage"></input>&nbsp;
+                    <input type="text" style="width:95%;" placeholder="コメント入力欄" @bind="@_newMessage"></input>&nbsp;
                 </form>
             </div>
             <div class="col-3">
-                <button class="btn btn-primary" @onclick="@(s =>SendAsync(_newMessage))" >発言</button>
+                <button class="btn btn-primary" @onclick="@(s =>SendAsync(_newMessage))">発言</button>
                 <button class="btn btn-primary" @onclick="@(s =>TalkGPT(_newMessage))">ほのかさんに話しかける</button>
                 <button class="btn btn-primary" @onclick="NetaAsync">ネタをもらう</button>
             </div>
@@ -95,23 +98,23 @@ else
                 </div>
             </RadzenCard>
 
-            }
-            else
+        }
+        else
+        {
+            @if (@item.Mine)
             {
-                @if (@item.Mine)
-                {
-                    <RadzenCard class="m-0" Style="background-color:#daebf4;">
-                        <div class="container">
-                            <div class="row">
-                                @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
-                                {
-                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
-                                }
-                                else
-                                {
-                                    <div class="col-1"></div>
-                                }
-                                <div class="col-11">
+                <RadzenCard class="m-0" Style="background-color:#daebf4;">
+                    <div class="container">
+                        <div class="row">
+                            @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
+                            {
+                                <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault()!)" /></div>
+                            }
+                            else
+                            {
+                                <div class="col-1"></div>
+                            }
+                            <div class="col-11">
                                 <div class="row">
                                     <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
                                     <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
@@ -124,25 +127,25 @@ else
                                         </div>
                                     </div>
                                 </div>
-                                </div>
                             </div>
                         </div>
-                    </RadzenCard>
-                }
-                else
-                {
-                    <RadzenCard class="m-0" Style="background-color:white;">
-                        <div class="container">
-                            <div class="row">
-                                @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
-                                {
-                                    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault())" /></div>
-                                }
-                                else
-                                {
-                                    <div class="col-1"></div>
-                                }
-                                <div class="col-11">
+                    </div>
+                </RadzenCard>
+            }
+            else
+            {
+                <RadzenCard class="m-0" Style="background-color:white;">
+                    <div class="container">
+                        <div class="row">
+                            @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
+                            {
+                                <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault()!)" /></div>
+                            }
+                            else
+                            {
+                                <div class="col-1"></div>
+                            }
+                            <div class="col-11">
                                 <div class="row">
                                     <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
                                     <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
@@ -173,17 +176,17 @@ else
     private bool _isChatting = false;
 
     // name of the user who will be chatting
-    private string _username;
+    private string _username = string.Empty;
 
     // on-screen message
-    private string _message;
+    private string _message = string.Empty;
 
     // new message input
-    private string _newMessage;
+    private string _newMessage = string.Empty;
 
-    public string UserId;
+    public string UserId = string.Empty;
 
-    public IEnumerable<string> RoomUserName;
+    public IEnumerable<string>? RoomUserName;
 
 
     Regex regex = new Regex(@"^[\w/\:.-]+;base64,");
@@ -214,8 +217,8 @@ else
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        user = authState.User.Identity?.Name;
-        UserId = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Select(x => x.Value).FirstOrDefault();
+        user = authState!.User.Identity?.Name!;
+        UserId = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Select(x => x.Value).FirstOrDefault()!;
         _username = user;
 
         //clientHub.OnChange += StateHasChanged;
@@ -295,7 +298,7 @@ else
     {
         if (_isChatting)
         {
-            await SendAsync($"[ほのか] {_username} さんいってらっしゃい");
+            await SendAsync($"[ほのか] {_username} さんいってらっしゃい", true);
             room.LeaveRoom(UserId);
             //await _hubConnection.StopAsync();
             //await _hubConnection.DisposeAsync();
@@ -319,10 +322,11 @@ else
         chat.UserId = UserId ?? string.Empty;
         DbContext.Chats.Add(chat);
         DbContext.SaveChanges();
-        Message message1 = new Message(_username, chat.Message, false, UserId);
+        semanticKernelLogic.NonGenerateMessage(chat.Message);
+        Message message1 = new Message(_username ?? string.Empty, chat.Message, false, UserId ?? string.Empty);
 
         await clientHub.SendAsync(message1);
-        room.SendMsg(UserId);
+        room.SendMsg(UserId ?? string.Empty);
         _newMessage = string.Empty;
         StateHasChanged();
     }
@@ -339,12 +343,13 @@ else
         requestMessage.Headers.TryAddWithoutValidation("Content-Type", "application/json");
         requestMessage.Headers.Add("api-key", Program.GptKey);
 
-        requestMessage.RequestUri = new Uri(Program.GptUrl);
+        requestMessage.RequestUri = new Uri(Program.GptUrl!);
 
         string json =
-                $$""""
+                    $$""""
                     {
-                      "messages": [{"role":"user","content":"{{message}}"}],
+                      "messages": [{"role":"system","content":"Context: - 私の名前はほのかです。"},
+                       {"role":"user","content":"{{message}}"}],
                       "temperature": 1,
                       "top_p": 0.5,
                       "frequency_penalty": 0,
@@ -389,23 +394,24 @@ else
                 DbContext.Add(osaifu1);
             }
             DbContext.SaveChanges();
-            Message message1 = new Message(_username, message, true, UserId);
+            Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);
 
             await clientHub.SendAsync(message1);
-            room.SendMsg(UserId);
+            room.SendMsg(UserId ?? string.Empty);
             _newMessage = string.Empty;
             StateHasChanged();
-            string response = await SendGptChat(message);
+            //string response = await SendGptChat(message);
+            string response = await semanticKernelLogic.Run(message);
             chat = new();
             chat.Name = _username ?? string.Empty;
             chat.Message = $"[ほのか] : {_username}さん{response}";
             chat.UserId = UserId ?? string.Empty;
             DbContext.Chats.Add(chat);
             DbContext.SaveChanges();
-            Message message2 = new Message(_username, chat.Message, false, UserId);
+            Message message2 = new Message(_username ?? string.Empty, chat.Message, false, UserId ?? string.Empty);
 
             await clientHub.SendAsync(message2);
-            room.SendMsg(UserId);
+            room.SendMsg(UserId ?? string.Empty);
             _newMessage = string.Empty;
             StateHasChanged();
 
@@ -419,11 +425,11 @@ else
     /// </summary>
     /// <param name="message">発言内容</param>
     /// <returns></returns>
-    private async Task SendAsync(string message)
+    private async Task SendAsync(string message, bool IsSystem = false)
     {
         if (_isChatting && !string.IsNullOrWhiteSpace(message))
         {
-            if (message.StartsWith("[ほのか]"))
+            if (message.StartsWith("[ほのか]") && !IsSystem)
             {
                 return;
             }
@@ -433,6 +439,7 @@ else
             chat.UserId = UserId ?? string.Empty;
             Osaifu osaifu1 = new();
             DbContext.Chats.Add(chat);
+            semanticKernelLogic.NonGenerateMessage(message);
             var osaifu = DbContext.Osaifus.Find(_username);
             if (osaifu != null)
             {
@@ -445,10 +452,10 @@ else
                 DbContext.Add(osaifu1);
             }
             DbContext.SaveChanges();
-            Message message1 = new Message(_username, message, true, UserId);
+            Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);
 
             await clientHub.SendAsync(message1);
-            room.SendMsg(UserId);
+            room.SendMsg(UserId ?? string.Empty);
             _newMessage = string.Empty;
             StateHasChanged();
         }
