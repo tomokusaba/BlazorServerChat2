@@ -12,7 +12,7 @@ namespace BlazorServerChat2.Data
     /// </summary>
     public class ClientHub : NavigationManager
     {
-        private HubConnection _hubConnection;
+        private HubConnection? _hubConnection;
         private string? _hubUrl;
         /// <summary>
         /// チャットのメッセージリスト
@@ -22,9 +22,9 @@ namespace BlazorServerChat2.Data
         private NavigationManager _navigationManager;
         private ApplicationDbContext _applicationDbContext;
         private string? _username;
-        private string UserId;
+        private string? UserId;
         private Room _room;
-        public event Action OnChange;
+        public event Action? OnChange;
         public int Room = 0;
 
         /// <summary>
@@ -73,12 +73,12 @@ namespace BlazorServerChat2.Data
                 _username = authState.User.Identity?.Name;
                 UserId = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Select(x => x.Value).FirstOrDefault();
 
-                Message message = new Message(_username, $"[ほのか] {_username} さんおかえりなさい", false, UserId);
+                Message message = new Message(_username ?? string.Empty, $"[ほのか] {_username} さんおかえりなさい", false, UserId ?? string.Empty);
 
                 Chat chat = new Chat();
                 chat.Message = message.Body;
-                chat.Name = _username;
-                chat.UserId = UserId;
+                chat.Name = _username ?? string.Empty;
+                chat.UserId = UserId ?? string.Empty;
                 _applicationDbContext.Chats.Add(chat);
                 await _applicationDbContext.SaveChangesAsync();
 
@@ -97,7 +97,7 @@ namespace BlazorServerChat2.Data
         public async Task SendAsync(Message message)
         {
             _room.SendMsg(message.UserId);
-            await _hubConnection.SendAsync("Broadcast", message.Username, message);
+            await _hubConnection!.SendAsync("Broadcast", message.Username, message);
             Room = _room.room.Count;
             NotifyStateChanged();
         }
@@ -108,7 +108,7 @@ namespace BlazorServerChat2.Data
         /// <returns></returns>
         public async Task DisconnectAsync()
         {
-            await _hubConnection.StopAsync();
+            await _hubConnection!.StopAsync();
             await _hubConnection.DisposeAsync();
             Room = _room.room.Count;
             NotifyStateChanged();

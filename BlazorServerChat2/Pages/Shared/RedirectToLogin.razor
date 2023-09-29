@@ -2,7 +2,7 @@
 
 @code{
     [Parameter]
-    public string ReturnUrl { get; set; }
+    public string? ReturnUrl { get; set; }
     protected override void OnAfterRender(bool firstRender)
     {
         ReturnUrl = "~/" + ReturnUrl;
