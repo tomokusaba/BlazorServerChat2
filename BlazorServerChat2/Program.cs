@@ -80,7 +80,7 @@ builder.Services.AddSingleton<Room>();
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddSingleton<SemanticKernelLogic>();
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+builder.Logging.AddJsonConsole();
 builder.Logging.AddApplicationInsights();
 builder.Logging.AddFilter("Microsoft.SemanticKernel", LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
