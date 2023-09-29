@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <Nullable>disable</Nullable>
+    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-BlazorServerChat2-F0A9D83A-563B-466C-9E4C-6FA6E84CEE5D</UserSecretsId>
     <ApplicationInsightsResourceId>/subscriptions/de4b03f6-f324-4e64-ac59-f00e453f31fa/resourceGroups/abiyaapplicationInsight/providers/microsoft.insights/components/BlazorServerChat2</ApplicationInsightsResourceId>
+	  <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
   </PropertyGroup>
 
   <ItemGroup>

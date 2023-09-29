@@ -10,7 +10,7 @@
 <InputFile OnChange="@LoadFile" />
 @result
 @code {
-    string result;
+    string? result;
     private async Task LoadFile(InputFileChangeEventArgs e)
     {
         IconMaster icon = new IconMaster();
