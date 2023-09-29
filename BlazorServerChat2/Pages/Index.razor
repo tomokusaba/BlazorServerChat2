@@ -21,7 +21,7 @@
 
 <PageTitle>あびや</PageTitle>
 
-<h1>あびやチャット</h1>
+<FluentLabel Typo="Typography.H1">あびやチャット</FluentLabel>
 <hr />
 @*
 @if (!_isChatting)
@@ -44,9 +44,15 @@ else
 {
     // banner to show current user*@
 <div class="alert alert-secondary mt-4" role="alert">
-    <span class="oi oi-person mr-2" aria-hidden="true"></span>
+    <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Horizontal" HorizontalGap="30">
+    <FluentCounterBadge Count="Kingaku" Appearance="Appearance.Accent" Max="9000000">
+        <FluentButton>
+            <FluentIcon Value="@(new Icons.Regular.Size24.PersonChat())" Color="@Color.Accent" />
+        </FluentButton>
+    </FluentCounterBadge>
     <span>ログインユーザ： <b>@_username</b>さん</span>
-    <button class="btn btn-sm btn-warning ml-md-auto" @onclick="DisconnectAsync">退室</button><br />
+    <FluentButton Appearance="Appearance.Neutral" OnClick="DisconnectAsync">退室</FluentButton>
+    </FluentStack><br />
     <span><NavLink class="nav-link" href="log">これまでのお話し</NavLink> </span><br />
     <span>
         たぶん　@room.roomCount 人在室中
@@ -65,16 +71,18 @@ else
 <div id="scrollbox">
     <div class="container">
         <div class="row">
+            <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Left">
             <div class="col-9">
                 <form @onsubmit="@(s =>SendAsync(_newMessage))">
-                    <input type="text" style="width:95%;" placeholder="コメント入力欄" @bind="@_newMessage"></input>&nbsp;
+                        <FluentTextField @ref="fluentTextField" AutoComplete="off" Id="ChatComment" Name="ChatComment" TextFieldType="TextFieldType.Text" style="width:95%;" Placeholder="コメント入力欄" @bind-Value="@_newMessage" AfterBindValue="@(s =>TalkGPT(_newMessage))"></FluentTextField>&nbsp;
                 </form>
             </div>
             <div class="col-3">
-                <button class="btn btn-primary" @onclick="@(s =>SendAsync(_newMessage))">発言</button>
-                <button class="btn btn-primary" @onclick="@(s =>TalkGPT(_newMessage))">ほのかさんに話しかける</button>
-                <button class="btn btn-primary" @onclick="NetaAsync">ネタをもらう</button>
+                <FluentButton Appearance="Appearance.Accent" OnClick="@(s =>SendAsync(_newMessage))">発言</FluentButton>
+                <FluentButton @ref="honoka" Appearance="Appearance.Accent" OnClick="@(s =>TalkGPT(_newMessage))">ほのかさんに話しかける</FluentButton>
+                <FluentButton Appearance="Appearance.Accent" OnClick="NetaAsync">ネタをもらう</FluentButton>
             </div>
+            </FluentStack>
         </div>
     </div>
     @foreach (var item in clientHub._messages.OrderByDescending(x => x.PostTime))
@@ -188,6 +196,9 @@ else
 
     public IEnumerable<string>? RoomUserName;
 
+    private FluentButton? honoka;
+    private FluentTextField? fluentTextField;
+    private int Kingaku = 0;
 
     Regex regex = new Regex(@"^[\w/\:.-]+;base64,");
     //public string huburi;
@@ -250,6 +261,11 @@ else
                 clientHub._messages.Add(message);
             }
 
+            var osaifu = DbContext.Osaifus.Find(_username);
+            if (osaifu != null)
+            {
+                Kingaku = osaifu.Kingaku;
+            }
 
         }
         catch (Exception e)
@@ -346,7 +362,7 @@ else
         requestMessage.RequestUri = new Uri(Program.GptUrl!);
 
         string json =
-                    $$""""
+                                $$""""
                     {
                       "messages": [{"role":"system","content":"Context: - 私の名前はほのかです。"},
                        {"role":"user","content":"{{message}}"}],
@@ -386,12 +402,14 @@ else
             if (osaifu != null)
             {
                 osaifu.Kingaku = osaifu.Kingaku + 100;
+                Kingaku = osaifu.Kingaku;
             }
             else
             {
                 osaifu1.Kingaku = 100;
                 osaifu1.Name = _username;
                 DbContext.Add(osaifu1);
+                Kingaku = 100;
             }
             DbContext.SaveChanges();
             Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);
@@ -413,6 +431,7 @@ else
             await clientHub.SendAsync(message2);
             room.SendMsg(UserId ?? string.Empty);
             _newMessage = string.Empty;
+            
             StateHasChanged();
 
         }
@@ -444,12 +463,14 @@ else
             if (osaifu != null)
             {
                 osaifu.Kingaku = osaifu.Kingaku + 100;
+                Kingaku = osaifu.Kingaku;
             }
             else
             {
                 osaifu1.Kingaku = 100;
                 osaifu1.Name = _username;
                 DbContext.Add(osaifu1);
+                Kingaku = 100;
             }
             DbContext.SaveChanges();
             Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);

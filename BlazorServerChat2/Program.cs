@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Fast.Components.FluentUI;
 using StackExchange.Redis;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -85,6 +86,11 @@ builder.Logging.AddApplicationInsights();
 builder.Logging.AddFilter("Microsoft.SemanticKernel", LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
 builder.Services.AddApplicationInsightsTelemetry();
+builder.Services.AddHttpClient();
+builder.Services.AddFluentUIComponents(options =>
+{
+    options.HostingModel = BlazorHostingModel.Server;
+});
 
 var app = builder.Build();
 var _telemetryClient = app.Services.GetRequiredService<TelemetryClient>();

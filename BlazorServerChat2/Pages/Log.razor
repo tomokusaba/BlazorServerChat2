@@ -24,7 +24,7 @@
 </RadzenDataGrid>
 *@
 <FluentDataGrid Items="@chats.AsQueryable()" GridTemplateColumns="0.5fr 0.5fr 2fr">
-    <PropertyColumn Property="@(p => p.Time)" Format="yyyy/MM/dd hh:mm:ss" Title="投稿時刻" />
+    <PropertyColumn Property="@(p => p.Time)" Format="yyyy/MM/dd HH:mm:ss" Title="投稿時刻" />
     <PropertyColumn Property="@(p => p.Name)" Title="名前" />
 <TemplateColumn Title="投稿内容" Class="multiline-text">
 <ChildContent>
