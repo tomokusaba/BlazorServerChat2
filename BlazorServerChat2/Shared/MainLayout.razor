@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.Fast.Components.FluentUI.DesignTokens;
+@inherits LayoutComponentBase
+@inject BaseLayerLuminance BaseLayerLuminance
 
 <PageTitle>あびや</PageTitle>
 
@@ -10,6 +12,7 @@
     <main>
         <div class="top-row px-4 auth">
             <LoginDisplay />
+            <FluentSwitch @bind-Value="IsDarkMode" @onchange="OnChange"  />
         </div>
 
         <article class="content px-4">
@@ -17,3 +20,37 @@
         </article>
     </main>
 </div>
+
+@code {
+    private bool IsDarkMode { get; set; } = false;
+
+    private async Task OnChange(ChangeEventArgs e)
+    {
+        if (!IsDarkMode)
+        {
+            await BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, 0.15f);
+        }
+        else
+        {
+            await BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, 0.98f);
+        }
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            IsDarkMode = false;
+            if (IsDarkMode)
+            {
+                await BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, 0.15f);
+            }
+            else
+            {
+                await BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, 0.98f);
+            }
+            StateHasChanged();
+        }
+    }
+}

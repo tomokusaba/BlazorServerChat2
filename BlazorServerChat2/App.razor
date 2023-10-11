@@ -1,7 +1,7 @@
 ﻿@using BlazorServerChat2.Pages.Shared
 @using BlazorServerChat2.Shared
 @inject NavigationManager NavigationManager
-<FluentDesignSystemProvider AccentBaseColor="#185ABD" BaseLayerLuminance="(float)0.98">
+<FluentDesignSystemProvider @ref="DesignSystemProvider" AccentBaseColor="#185ABD" BaseLayerLuminance="(float)0.98">
     <CascadingAuthenticationState>
         <Router AppAssembly="@typeof(App).Assembly">
             <Found Context="routeData">
@@ -25,3 +25,7 @@
         </Router>
     </CascadingAuthenticationState>
 </FluentDesignSystemProvider>
+
+@code {
+    public static FluentDesignSystemProvider? DesignSystemProvider { get; set; }
+}
