@@ -73,22 +73,24 @@ else
         <div class="row">
             <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Left">
                 <div class="col-9">
-                    <form @onsubmit="@(s =>SendAsync(_newMessage))">
+                    
                         <FluentTextField @ref="fluentTextField"
-                                         AutoComplete="off"
+                                         AutoComplete="on"
                                          Id="ChatComment"
                                          Name="ChatComment"
                                          TextFieldType="TextFieldType.Text"
                                          style="width:95%;"
                                          Placeholder="コメント入力欄"
-                        @bind-Value="@_newMessage">
+                                         Label="コメント入力"
+                                         AriaLabel="ここにチャットで発言するコメントを入力してください"
+                        @bind-Value="_newMessage">
                         </FluentTextField>&nbsp;
-                    </form>
+                    
                 </div>
                 <div class="col-3">
-                    <FluentButton Appearance="Appearance.Accent" OnClick="@(s =>SendAsync(_newMessage))">発言</FluentButton>
-                    <FluentButton @ref="honoka" Appearance="Appearance.Accent" OnClick="@(s =>TalkGPT(_newMessage))">ほのかさんに話しかける</FluentButton>
-                    <FluentButton Appearance="Appearance.Accent" OnClick="NetaAsync">ネタをもらう</FluentButton>
+                    <FluentButton Appearance="Appearance.Accent" OnClick="@(s =>SendAsync(_newMessage))" aria-label="発言するときはこのボタンを押してください">発言</FluentButton>
+                    <FluentButton @ref="honoka" Appearance="Appearance.Neutral" OnClick="@(s =>TalkGPT(_newMessage))">ほのかさんに話しかける</FluentButton>
+                    <FluentButton Appearance="Appearance.Neutral" OnClick="NetaAsync">ネタをもらう</FluentButton>
                 </div>
             </FluentStack>
         </div>
