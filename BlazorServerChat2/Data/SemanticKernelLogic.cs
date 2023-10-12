@@ -5,8 +5,8 @@ using Microsoft.Build.Logging;
 using Microsoft.IdentityModel.Abstractions;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using System.Diagnostics.Metrics;
 
 namespace BlazorServerChat2.Data
@@ -75,7 +75,7 @@ namespace BlazorServerChat2.Data
                 .Build();
             GptChat4 = kernel.GetService<IChatCompletion>();
 
-
+            
             chatHistory = (OpenAIChatHistory)GptChat4.CreateNewChat("あなたはほのかという名前のAIアシスタントです。くだけた女性の口調で人に役立つ回答をします。");
 
         }
@@ -103,14 +103,12 @@ namespace BlazorServerChat2.Data
             var log = _logger.CreateLogger("SemanticKernelLogic");
             log.LogInformation("input : {}", input);
             chatHistory.AddUserMessage(input);
-            var setting = new ChatRequestSettings
-            {
-                Temperature = 0.8,
-                MaxTokens = 2000,
-                FrequencyPenalty = 0.5,
 
+            var setting = new OpenAIRequestSettings()
+            {
+                MaxTokens = 2000,
             };
-            
+
             string reply = await GptChat4.GenerateMessageAsync(chatHistory, setting);
             log.LogInformation("reply : {}", reply);
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseAutoLinks().UseBootstrap().UseDiagrams().UseGridTables().Build();
