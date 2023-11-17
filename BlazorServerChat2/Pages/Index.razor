@@ -11,6 +11,7 @@
 @using System.Text.RegularExpressions;
 @using System.Text;
 @using ConsoleApp15;
+@using Microsoft.FluentUI.AspNetCore.Components
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager navigationManager
 @inject ApplicationDbContext DbContext
@@ -44,7 +45,7 @@ else
 {
     // banner to show current user*@
 <div class="alert alert-secondary mt-4" role="alert">
-    <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Horizontal" HorizontalGap="30">
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" HorizontalGap="30">
         <FluentCounterBadge Count="Kingaku" Appearance="Appearance.Accent" Max="9000000">
             <FluentButton>
                 <FluentIcon Value="@(new Icons.Regular.Size24.PersonChat())" Color="@Color.Accent" />
@@ -71,7 +72,7 @@ else
 <div id="scrollbox">
     <div class="container">
         <div class="row">
-            <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Left">
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Left">
                 <div class="col-9">
                     
                         <FluentTextField @ref="fluentTextField"
@@ -95,7 +96,7 @@ else
             </FluentStack>
         </div>
     </div>
-    <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Vertical" VerticalGap="40">
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="40">
     @foreach (var item in clientHub._messages.OrderByDescending(x => x.PostTime))
     {
         @if (item.IsNotice)
@@ -117,13 +118,13 @@ else
     </div>
     </RadzenCard>
     *@
-            <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Horizontal">
+                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal">
                 <FluentGrid>
                     <FluentGridItem lg="3" md="3" sm="3" xl="3" xs="3" xxl="3">
                             <FluentEmoji Value="@(new Emojis.Objects.Color.Default.BlackNib())" Width="64px" />
                     </FluentGridItem>
                     <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8">
-                        <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
+                            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
 
                             <FluentLabel Typo="Typography.Body">@((MarkupString)item.Body)</FluentLabel>
                                 <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
@@ -167,14 +168,14 @@ else
     </div>
     </RadzenCard>
     *@
-                <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Horizontal"
+                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
                              VerticalAlignment="VerticalAlignment.Center"
                              HorizontalAlignment="HorizontalAlignment.Center">
                     <FluentGrid>
                         <FluentGridItem lg="3" md="3" sm="3" xl="3" xs="3" xxl="3">
                             </FluentGridItem>
                         <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8">
-                            <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
+                                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
 
                                 <FluentLabel Typo="Typography.Body" Color="Color.Accent">
                                         @*<div style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">*@@item.Body
@@ -235,7 +236,7 @@ else
     </div>
     </RadzenCard>
     *@
-                        <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
+                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
                             <FluentGrid>
                                 <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1">
                                     <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
@@ -252,7 +253,7 @@ else
                                     </FluentStack>
                                 </FluentGridItem>
                                 <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8">
-                                    <FluentStack Orientation="Microsoft.Fast.Components.FluentUI.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
+                                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
 
                                         <FluentLabel Typo="Typography.Body">
                                             @item.Username :

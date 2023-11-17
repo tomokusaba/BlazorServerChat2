@@ -69,7 +69,8 @@ namespace BlazorServerChat2.Data
 
             //}).WithLogger(_logger).Build();
             kernel = new KernelBuilder()
-                .WithAzureChatCompletionService(deploymentName, baseUrl, key)
+                .WithAzureOpenAIChatCompletionService(deploymentName, baseUrl, key)
+                //.WithAzureChatCompletionService(deploymentName, baseUrl, key)
                 .WithLoggerFactory(_logger)
                 
                 .Build();

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Fast.Components.FluentUI;
+using Microsoft.FluentUI.AspNetCore.Components;
 using StackExchange.Redis;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -89,7 +89,7 @@ builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddHttpClient();
 builder.Services.AddFluentUIComponents(options =>
 {
-    options.HostingModel = BlazorHostingModel.Server;
+    //options.HostingModel = BlazorHostingModel.Server;
 });
 
 var app = builder.Build();
