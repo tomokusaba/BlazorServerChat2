@@ -1,3 +1,5 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
+using BlazorApp31.Plugin;
 using BlazorServerChat2.Areas.Identity;
 using BlazorServerChat2.Data;
 using BlazorServerChat2.Hubs;
@@ -73,6 +75,11 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 });
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddHttpClient();
+builder.Services.AddFluentUIComponents(options =>
+{
+    //options.HostingModel = BlazorHostingModel.Server;
+});
 
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
@@ -80,17 +87,13 @@ builder.Services.AddScoped<ClientHub>();
 builder.Services.AddSingleton<Room>();
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddSingleton<SemanticKernelLogic>();
+builder.Services.AddScoped<ScreenModePlugin>();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddApplicationInsights();
 builder.Logging.AddFilter("Microsoft.SemanticKernel", LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddHttpClient();
-builder.Services.AddFluentUIComponents(options =>
-{
-    //options.HostingModel = BlazorHostingModel.Server;
-});
 
 var app = builder.Build();
 var _telemetryClient = app.Services.GetRequiredService<TelemetryClient>();

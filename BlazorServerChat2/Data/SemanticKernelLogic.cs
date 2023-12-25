@@ -1,4 +1,5 @@
-﻿using Markdig;
+﻿using BlazorApp31.Plugin;
+using Markdig;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Build.Logging;
@@ -13,12 +14,12 @@ namespace BlazorServerChat2.Data
 {
     public class SemanticKernelLogic
     {
-        public IKernel kernel;
-        public IChatCompletion GptChat4 { get; set; }
+        public Kernel kernel;
+        public IChatCompletionService GptChat4 { get; set; }
         private readonly ILoggerFactory _logger;
         private readonly IConfiguration _configuration;
         private readonly TelemetryClient _telemetryClient;
-        private OpenAIChatHistory chatHistory;
+        private ChatHistory chatHistory;
 
         /// <summary>
         /// kernelの初期化からOpenAIChatHistoryをインスタンス化するところまでやる
@@ -30,7 +31,7 @@ namespace BlazorServerChat2.Data
             _logger = logger;
             _configuration = configuration;
             _telemetryClient = telemetryClient;
-            //string serviceId = _configuration.GetValue<string>("Settings:ServiceId") ?? string.Empty;
+            string serviceId = _configuration.GetValue<string>("Settings:ServiceId") ?? string.Empty;
             string deploymentName = _configuration.GetValue<string>("Settings:DeploymentName") ?? string.Empty;
             string baseUrl = _configuration.GetValue<string>("Settings:BaseUrl") ?? string.Empty;
             string key = _configuration.GetValue<string>("Settings:OpenAIKey") ?? string.Empty;
@@ -59,7 +60,7 @@ namespace BlazorServerChat2.Data
 
             meterListener.Start();
 
-            
+
 
             _telemetryClient.StartOperation<DependencyTelemetry>("ApplicationInsights.Example");
 
@@ -68,28 +69,27 @@ namespace BlazorServerChat2.Data
             //    c.AddAzureChatCompletionService( deploymentName, baseUrl, key);
 
             //}).WithLogger(_logger).Build();
-            kernel = new KernelBuilder()
-                .WithAzureOpenAIChatCompletionService(deploymentName, baseUrl, key)
-                //.WithAzureChatCompletionService(deploymentName, baseUrl, key)
-                .WithLoggerFactory(_logger)
-                
-                .Build();
-            GptChat4 = kernel.GetService<IChatCompletion>();
+            KernelBuilder builder = new();
+            builder.Services.AddAzureOpenAIChatCompletion(deploymentName, serviceId, baseUrl, key);
+            //.WithAzureChatCompletionService(deploymentName, baseUrl, key)
+            builder.Plugins.AddFromType<ScreenModePlugin>();
 
-            
-            chatHistory = (OpenAIChatHistory)GptChat4.CreateNewChat("あなたはほのかという名前のAIアシスタントです。くだけた女性の口調で人に役立つ回答をします。");
+            kernel = builder.Build();
+            GptChat4 = kernel.GetRequiredService<IChatCompletionService>();
+
+            chatHistory = new ChatHistory("あなたはほのかという名前のAIアシスタントです。くだけた女性の口調で人に役立つ回答をします。");
 
         }
 
         public void Clear()
         {
-            chatHistory = (OpenAIChatHistory)GptChat4.CreateNewChat("あなたはほのかという名前のAIアシスタントです。くだけた女性の口調で人に役立つ回答をします。");
+            chatHistory = new ChatHistory("あなたはほのかという名前のAIアシスタントです。くだけた女性の口調で人に役立つ回答をします。");
 
         }
 
         public void NonGenerateMessage(string input)
         {
-            
+
             chatHistory.AddUserMessage(input);
         }
 
@@ -104,13 +104,24 @@ namespace BlazorServerChat2.Data
             var log = _logger.CreateLogger("SemanticKernelLogic");
             log.LogInformation("input : {}", input);
             chatHistory.AddUserMessage(input);
-
-            var setting = new OpenAIRequestSettings()
+            var setting = new OpenAIPromptExecutionSettings()
             {
                 MaxTokens = 2000,
             };
 
-            string reply = await GptChat4.GenerateMessageAsync(chatHistory, setting);
+            OpenAIPromptExecutionSettings? setting2 = new()
+            {
+                FunctionCallBehavior = FunctionCallBehavior.AutoInvokeKernelFunctions
+            };
+
+            var result = await kernel.InvokePromptAsync(input, new(setting2));
+
+            string reply = await GptChat4.GetChatMessageContentAsync(chatHistory, setting);
+            if (result != null)
+            {
+                log.LogInformation("result : {}", result);
+                reply = result.ToString();
+            }
             log.LogInformation("reply : {}", reply);
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseAutoLinks().UseBootstrap().UseDiagrams().UseGridTables().Build();
             var htmlReply = Markdown.ToHtml(reply, pipeline);
