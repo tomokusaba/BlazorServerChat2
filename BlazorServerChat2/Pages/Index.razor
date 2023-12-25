@@ -1,5 +1,6 @@
 ﻿@attribute [Authorize]
 @page "/"
+@using BlazorApp31.Plugin
 @using BlazorServerChat2.Hubs
 @using Markdig;
 @using Microsoft.AspNetCore.Identity
@@ -19,6 +20,7 @@
 @inject Room room
 @inject HttpClient http
 @inject SemanticKernelLogic semanticKernelLogic
+@inject ScreenModePlugin screenModePlugin
 
 <PageTitle>あびや</PageTitle>
 

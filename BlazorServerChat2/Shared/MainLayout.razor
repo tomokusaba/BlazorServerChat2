@@ -12,7 +12,7 @@
     <main>
         <div class="top-row px-4 auth" style="background-color:var(--fill-color)">
             <LoginDisplay />
-            <FluentSwitch @bind-Value="IsDarkMode" @onchange="OnChange"  />
+            <FluentSwitch @bind-Value="@IsDark" @ref="@Switch"  />
         </div>
 
         <article class="content px-4">
@@ -23,6 +23,8 @@
 
 @code {
     private bool IsDarkMode { get; set; } = false;
+
+    public static FluentSwitch? Switch { get; set; }
 
     private async Task OnChange(ChangeEventArgs e)
     {
@@ -36,6 +38,31 @@
         }
         StateHasChanged();
     }
+
+    public static bool DarkMode = false; 
+
+    public bool IsDark
+    {
+        get => DarkMode;
+        set
+        {
+            DarkMode = value;
+
+            if (value)
+            {
+                //BaseLayerLuminance.WithDefault(StandardLuminance.DarkMode.GetLuminanceValue());
+                BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, StandardLuminance.DarkMode.GetLuminanceValue());
+            }
+            else
+            {
+                //BaseLayerLuminance.WithDefault(StandardLuminance.LightMode.GetLuminanceValue());
+                BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, StandardLuminance.LightMode.GetLuminanceValue());
+            }
+            StateHasChanged();
+        }
+    }
+
+    
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -51,6 +78,8 @@
                 await BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, 0.98f);
             }
             StateHasChanged();
+
+            
         }
     }
 }
