@@ -21,6 +21,8 @@
 @inject HttpClient http
 @inject SemanticKernelLogic semanticKernelLogic
 @inject ScreenModePlugin screenModePlugin
+@inject IKeyCodeService keyCodeService
+@implements IAsyncDisposable
 
 <PageTitle>あびや</PageTitle>
 
@@ -365,7 +367,7 @@ else
             {
                 Kingaku = osaifu.Kingaku;
             }
-
+            keyCodeService.RegisterListener(OnKeyDownAsync);
         }
         catch (Exception e)
         {
@@ -373,6 +375,12 @@ else
             _isChatting = false;
         }
 
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        keyCodeService.UnregisterListener(OnKeyDownAsync);
+        return ValueTask.CompletedTask;
     }
 
 
@@ -536,6 +544,16 @@ else
         }
 
     }
+
+    private async Task OnKeyDownAsync(FluentKeyCodeEventArgs args)
+    {
+        if (args.Key == KeyCode.Enter)
+        {
+            await SendAsync(_newMessage);
+        }
+    }
+
+    
 
     /// <summary>
     /// メッセージ送信
