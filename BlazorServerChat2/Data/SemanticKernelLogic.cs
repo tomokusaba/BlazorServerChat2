@@ -5,9 +5,8 @@ using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Build.Logging;
 using Microsoft.IdentityModel.Abstractions;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 using System.Diagnostics.Metrics;
 
 namespace BlazorServerChat2.Data
@@ -37,40 +36,40 @@ namespace BlazorServerChat2.Data
             string key = _configuration.GetValue<string>("Settings:OpenAIKey") ?? string.Empty;
             var meterListener = new MeterListener();
 
-            meterListener.InstrumentPublished = (Instrument, listener) =>
-            {
-                if (Instrument.Meter.Name.StartsWith("Microsoft.SemanticKernel", StringComparison.Ordinal))
-                {
-                    listener.EnableMeasurementEvents(Instrument);
-                }
-                if (Instrument.Meter.Name.StartsWith("SemanticKernelLogic", StringComparison.Ordinal))
-                {
-                    listener.EnableMeasurementEvents(Instrument);
-                }
-                if (Instrument.Meter.Name.StartsWith("AzureChatCompletion", StringComparison.Ordinal))
-                {
-                    listener.EnableMeasurementEvents(Instrument);
-                }
-            };
+            //meterListener.InstrumentPublished = (Instrument, listener) =>
+            //{
+            //    if (Instrument.Meter.Name.StartsWith("Microsoft.SemanticKernel", StringComparison.Ordinal))
+            //    {
+            //        listener.EnableMeasurementEvents(Instrument);
+            //    }
+            //    if (Instrument.Meter.Name.StartsWith("SemanticKernelLogic", StringComparison.Ordinal))
+            //    {
+            //        listener.EnableMeasurementEvents(Instrument);
+            //    }
+            //    if (Instrument.Meter.Name.StartsWith("AzureChatCompletion", StringComparison.Ordinal))
+            //    {
+            //        listener.EnableMeasurementEvents(Instrument);
+            //    }
+            //};
 
-            meterListener.SetMeasurementEventCallback<double>((instrument, measurment, tags, state) =>
-            {
-                _telemetryClient.GetMetric(instrument.Name).TrackValue(measurment);
-            });
+            //meterListener.SetMeasurementEventCallback<double>((instrument, measurment, tags, state) =>
+            //{
+            //    _telemetryClient.GetMetric(instrument.Name).TrackValue(measurment);
+            //});
 
-            meterListener.Start();
+            //meterListener.Start();
 
 
 
-            _telemetryClient.StartOperation<DependencyTelemetry>("ApplicationInsights.Example");
+            //_telemetryClient.StartOperation<DependencyTelemetry>("ApplicationInsights.Example");
 
             //kernel = new KernelBuilder().Configure(c =>
             //{
             //    c.AddAzureChatCompletionService( deploymentName, baseUrl, key);
 
             //}).WithLogger(_logger).Build();
-            KernelBuilder builder = new();
-            builder.Services.AddAzureOpenAIChatCompletion(deploymentName, serviceId, baseUrl, key);
+            IKernelBuilder builder = Kernel.CreateBuilder();
+            builder.AddAzureOpenAIChatCompletion(deploymentName, baseUrl, key);
             //.WithAzureChatCompletionService(deploymentName, baseUrl, key)
             builder.Plugins.AddFromType<ScreenModePlugin>();
 
@@ -111,22 +110,23 @@ namespace BlazorServerChat2.Data
 
             OpenAIPromptExecutionSettings? setting2 = new()
             {
-                FunctionCallBehavior = FunctionCallBehavior.AutoInvokeKernelFunctions
+                //FunctionCallBehavior = FunctionCallBehavior.AutoInvokeKernelFunctions
+                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
             };
 
             var result = await kernel.InvokePromptAsync(input, new(setting2));
 
-            string reply = await GptChat4.GetChatMessageContentAsync(chatHistory, setting);
+            var reply = await GptChat4.GetChatMessageContentAsync(chatHistory, setting);
             if (result != null)
             {
                 log.LogInformation("result : {}", result);
-                reply = result.ToString();
+                reply.InnerContent = result.ToString();
             }
             log.LogInformation("reply : {}", reply);
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseAutoLinks().UseBootstrap().UseDiagrams().UseGridTables().Build();
-            var htmlReply = Markdown.ToHtml(reply, pipeline);
+            var htmlReply = Markdown.ToHtml(reply.InnerContent?.ToString(), pipeline);
             log.LogInformation("htmlReply : {}", htmlReply);
-            chatHistory.AddAssistantMessage(reply);
+            chatHistory.AddAssistantMessage(reply.InnerContent?.ToString() ?? string.Empty);
             return htmlReply;
         }
 
