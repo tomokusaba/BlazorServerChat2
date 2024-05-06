@@ -25,14 +25,14 @@
 @implements IAsyncDisposable
 
 <PageTitle>あびや</PageTitle>
-
-<FluentLabel Typo="Typography.H1">あびやチャット</FluentLabel>
-<hr />
-@*
-@if (!_isChatting)
-{
+<FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="10">
+    <FluentLabel Typo="Typography.H1">あびやチャット</FluentLabel>
+    <hr />
+    @*
+    @if (!_isChatting)
+    {
     <p>
-        Enter your name to start chatting:
+    Enter your name to start chatting:
     </p>
 
     <input type="text" maxlength="32" @bind="@_username" />
@@ -41,96 +41,96 @@
     // Error messages
     @if (_message != null)
     {
-        <div class="invalid-feedback">@_message</div>
-        <small id="emailHelp" class="form-text text-muted">@_message</small>
+    <div class="invalid-feedback">@_message</div>
+    <small id="emailHelp" class="form-text text-muted">@_message</small>
     }
-}
-else
-{
+    }
+    else
+    {
     // banner to show current user*@
-<div class="alert alert-secondary mt-4" role="alert">
-    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" HorizontalGap="30">
-        <FluentCounterBadge Count="Kingaku" Appearance="Appearance.Accent" Max="9000000">
-            <FluentButton>
-                <FluentIcon Value="@(new Icons.Regular.Size24.PersonChat())" Color="@Color.Accent" />
-            </FluentButton>
-        </FluentCounterBadge>
-        <span>ログインユーザ： <b>@_username</b>さん</span>
-        <FluentButton Appearance="Appearance.Neutral" OnClick="DisconnectAsync">退室</FluentButton>
-    </FluentStack><br />
-    <span><NavLink class="nav-link" href="log">これまでのお話し</NavLink> </span><br />
-    <span>
-        たぶん　@room.roomCount 人在室中
-        @if (room.roomNames != null)
-        {
-            @foreach (var Item in room.roomNames)
+    <div class="alert alert-secondary mt-4" role="alert">
+        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" HorizontalGap="30">
+            <FluentCounterBadge Count="Kingaku" Appearance="Appearance.Accent" Max="9000000">
+                <FluentButton>
+                    <FluentIcon Value="@(new Icons.Regular.Size24.PersonChat())" Color="@Color.Accent" />
+                </FluentButton>
+            </FluentCounterBadge>
+            <span>ログインユーザ： <b>@_username</b>さん</span>
+            <FluentButton Appearance="Appearance.Neutral" OnClick="DisconnectAsync">退室</FluentButton>
+        </FluentStack><br />
+        <span><NavLink class="nav-link" href="log">これまでのお話し</NavLink> </span><br />
+        <span>
+            たぶん　@room.roomCount 人在室中
+            @if (room.roomNames != null)
             {
-                <span>
-                    @DbContext.Users.Find(Item) さん　
-                </span>
+                @foreach (var Item in room.roomNames)
+                {
+                    <span>
+                        @DbContext.Users.Find(Item) さん　
+                    </span>
+                }
             }
-        }
-    </span>
-</div>
-@*    // display messages*@
-<div id="scrollbox">
-    <div class="container">
-        <div class="row">
-            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Left">
-                <div class="col-9">
-                    
-                        <FluentTextField @ref="fluentTextField"
-                                         AutoComplete="on"
-                                         Id="ChatComment"
-                                         Name="ChatComment"
-                                         TextFieldType="TextFieldType.Text"
-                                         style="width:95%;"
-                                         Placeholder="コメント入力欄"
-                                         Label="コメント入力"
-                                         AriaLabel="ここにチャットで発言するコメントを入力してください"
-                        @bind-Value="_newMessage">
-                        </FluentTextField>&nbsp;
-                    
-                </div>
-                <div class="col-3">
+        </span>
+    </div>
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Left">
+        <FluentGrid Style="width:100%">
+
+            <FluentGridItem xs="9" Style="align-items:center;display:flex;">
+
+                <FluentTextField @ref="fluentTextField"
+                                 AutoComplete="on"
+                                 Id="ChatComment"
+                                 Name="ChatComment"
+                                 TextFieldType="TextFieldType.Text"
+                                 style="width:95%;"
+                                 Placeholder="コメント入力欄"
+                                 Label="コメント入力"
+                                 AriaLabel="ここにチャットで発言するコメントを入力してください"
+                                 @bind-Value="_newMessage">
+                </FluentTextField>&nbsp;
+
+            </FluentGridItem>
+            <FluentGridItem xs="3">
+                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="5">
                     <FluentButton Appearance="Appearance.Accent" OnClick="@(s =>SendAsync(_newMessage))" aria-label="発言するときはこのボタンを押してください">発言</FluentButton>
                     <FluentButton @ref="honoka" Appearance="Appearance.Neutral" OnClick="@(s =>TalkGPT(_newMessage))">ほのかさんに話しかける</FluentButton>
                     <FluentButton Appearance="Appearance.Neutral" OnClick="NetaAsync">ネタをもらう</FluentButton>
-                </div>
-            </FluentStack>
-        </div>
-    </div>
-    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="40">
-    @foreach (var item in clientHub._messages.OrderByDescending(x => x.PostTime))
-    {
-        @if (item.IsNotice)
+                </FluentStack>
+            </FluentGridItem>
+        </FluentGrid>
+
+    </FluentStack>
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="20">
+        @foreach (var item in clientHub._messages.OrderByDescending(x => x.PostTime))
         {
-            @*<RadzenCard class="m-0" Style="background-color:#e1f7f4;">
-    <div class="container ">
-    <div class="row">
-    <div class="col-12">@((MarkupString)item.Body)</div>
+            @if (item.IsNotice)
+            {
+                @*<RadzenCard class="m-0" Style="background-color:#e1f7f4;">
+        <div class="container ">
+        <div class="row">
+        <div class="col-12">@((MarkupString)item.Body)</div>
 
-    </div>
-    <div class="row">
-    <div class="col-1">
-    </div>
-    <div class="col-11 fs-6">
-    @item.PostTime.ToString()
-    </div>
-    </div>
+        </div>
+        <div class="row">
+        <div class="col-1">
+        </div>
+        <div class="col-11 fs-6">
+        @item.PostTime.ToString()
+        </div>
+        </div>
 
-    </div>
-    </RadzenCard>
-    *@
+        </div>
+        </RadzenCard>
+        *@
                 <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal">
-                <FluentGrid>
-                    <FluentGridItem lg="3" md="3" sm="3" xl="3" xs="3" xxl="3">
+                    <FluentGrid Style="width:100%">
+                        <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-2);border-bottom-left-radius:10px;border-top-left-radius:10px;">
                             <FluentEmoji Value="@(new Emojis.Objects.Color.Default.BlackNib())" Width="64px" />
-                    </FluentGridItem>
-                    <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8">
+                        </FluentGridItem>
+                        <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-2);border-bottom-right-radius:10px;border-top-right-radius:10px;">
                             <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
 
-                            <FluentLabel Typo="Typography.Body">@((MarkupString)item.Body)</FluentLabel>
+                                <FluentLabel Typo="Typography.Body">@((MarkupString)item.Body)</FluentLabel>
                                 <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
                             </FluentStack>
 
@@ -138,145 +138,146 @@ else
                     </FluentGrid>
                 </FluentStack>
                 <FluentDivider Role="DividerRole.Presentation" />
-        }
-        else
-        {
-            @if (@item.Mine)
-            {
-                @*<RadzenCard class="m-0" Style="background-color:#daebf4;">
-    <div class="container">
-    <div class="row">
-    @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
-    {
-    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault()!)" /></div>
-    }
-    else
-    {
-    <div class="col-1"></div>
-    }
-    <div class="col-11">
-    <div class="row">
-    <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
-    <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
-
-
-    <div class="row">
-
-    <div class="col-11 fs-6">
-    @item.PostTime.ToString()
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </RadzenCard>
-    *@
-                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
-                             VerticalAlignment="VerticalAlignment.Center"
-                             HorizontalAlignment="HorizontalAlignment.Center">
-                    <FluentGrid>
-                        <FluentGridItem lg="3" md="3" sm="3" xl="3" xs="3" xxl="3">
-                            </FluentGridItem>
-                        <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8">
-                                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
-
-                                <FluentLabel Typo="Typography.Body" Color="Color.Accent">
-                                        @*<div style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">*@@item.Body
-                                        @*</div>*@
-                                </FluentLabel>
-                                <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
-                            </FluentStack>
-
-                        </FluentGridItem>
-
-                        <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1">
-                            <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
-                                <div>
-                                    @if (@DbContext.UserChatSetting.Find(item.UserId) is not null && @DbContext.UserChatSetting.Find(item.UserId)!.IconNumber != 0)
-                                    {
-                                        <img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x  => x.IconNumber == (DbContext.UserChatSetting.Find(@item.UserId)!).IconNumber).Select(x => x.Icon).First()!)" />
-                                    }
-                                    else
-                                    {
-
-                                    }
-                                </div>
-                            </FluentStack>
-                        </FluentGridItem>
-                    </FluentGrid>
-                </FluentStack>
-                    <FluentDivider Role="DividerRole.Presentation" />
-
             }
             else
             {
-                @*<RadzenCard class="m-0" Style="background-color:white;">
-    <div class="container">
-    <div class="row">
-    @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
-    {
-    <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault()!)" /></div>
-    }
-    else
-    {
-    <div class="col-1"></div>
-    }
-    <div class="col-11">
-    <div class="row">
-    <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
-    <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
+                @if (@item.Mine)
+                {
+                    @*<RadzenCard class="m-0" Style="background-color:#daebf4;">
+        <div class="container">
+        <div class="row">
+        @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId)?.Select(x => x.IconNumber).FirstOrDefault() != 0)
+        {
+        <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault()!)" /></div>
+        }
+        else
+        {
+        <div class="col-1"></div>
+        }
+        <div class="col-11">
+        <div class="row">
+        <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
+        <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
 
 
-    <div class="row">
+        <div class="row">
 
-    <div class="col-11 fs-6">
-    @item.PostTime.ToString()
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </RadzenCard>
-    *@
-                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
-                            <FluentGrid>
-                                <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1">
-                                    <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
-                                        <div>
-                                    @if (@DbContext.UserChatSetting.Find(item.UserId) is not null && @DbContext.UserChatSetting.Find(item.UserId)!.IconNumber != 0)
-                                            {
-                                        <img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x  => x.IconNumber == (DbContext.UserChatSetting.Find(@item.UserId)!).IconNumber).Select(x => x.Icon).First()!)" />
-                                            }
-                                            else
-                                            {
-
-                                            }
-                                        </div>
-                                    </FluentStack>
-                                </FluentGridItem>
-                                <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8">
+        <div class="col-11 fs-6">
+        @item.PostTime.ToString()
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        </RadzenCard>
+        *@
+                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
+                                 VerticalAlignment="VerticalAlignment.Center"
+                                 HorizontalAlignment="HorizontalAlignment.Center">
+                        <FluentGrid Style="width:100%">
+                            <FluentGridItem lg="3" md="3" sm="3" xl="3" xs="3" xxl="3">
+                            </FluentGridItem>
+                            <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-4);border-bottom-left-radius:10px;border-top-left-radius:10px;">
                                 <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
 
-                                        <FluentLabel Typo="Typography.Body">
-                                            @item.Username :
+                                    <FluentLabel Typo="Typography.Body" Color="Color.Accent">
                                         @*<div style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">*@@item.Body
                                         @*</div>*@
-                                        </FluentLabel>
-                                        <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
-                                    </FluentStack>
+                                    </FluentLabel>
+                                    <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
+                                </FluentStack>
 
-                                </FluentGridItem>
-                            </FluentGrid>
-                        </FluentStack>
+                            </FluentGridItem>
+
+                            <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-4);border-bottom-right-radius:10px;border-top-right-radius:10px;">
+                                <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
+                                    <div>
+                                        @if (@DbContext.UserChatSetting.Find(item.UserId) is not null && @DbContext.UserChatSetting.Find(item.UserId)!.IconNumber != 0)
+                                        {
+                                            <img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x  => x.IconNumber == (DbContext.UserChatSetting.Find(@item.UserId)!).IconNumber).Select(x => x.Icon).First()!)" />
+                                        }
+                                        else
+                                        {
+
+                                        }
+                                    </div>
+                                </FluentStack>
+                            </FluentGridItem>
+                        </FluentGrid>
+                    </FluentStack>
                     <FluentDivider Role="DividerRole.Presentation" />
+
+                }
+                else
+                {
+                    @*<RadzenCard class="m-0" Style="background-color:white;">
+        <div class="container">
+        <div class="row">
+        @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
+        {
+        <div class="col-1"><img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault()!)" /></div>
+        }
+        else
+        {
+        <div class="col-1"></div>
+        }
+        <div class="col-11">
+        <div class="row">
+        <div class="col-2 fs-5" style="text-align:right;">@item.Username :</div>
+        <div class="col-9 fs-5" style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">@item.Body</div>
+
+
+        <div class="row">
+
+        <div class="col-11 fs-6">
+        @item.PostTime.ToString()
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        </RadzenCard>
+        *@
+                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
+                        <FluentGrid Style="width:100%">
+                            <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-2);border-bottom-left-radius:10px;border-top-left-radius:10px;">
+                                <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
+                                    <div>
+                                        @if (@DbContext.UserChatSetting.Find(item.UserId) is not null && @DbContext.UserChatSetting.Find(item.UserId)!.IconNumber != 0)
+                                        {
+                                            <img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x  => x.IconNumber == (DbContext.UserChatSetting.Find(@item.UserId)!).IconNumber).Select(x => x.Icon).First()!)" />
+                                        }
+                                        else
+                                        {
+
+                                        }
+                                    </div>
+                                </FluentStack>
+                            </FluentGridItem>
+                            <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-2);border-bottom-right-radius:10px;border-top-right-radius:10px;">
+                                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
+
+                                    <FluentLabel Typo="Typography.Body">
+                                        @item.Username :
+                                        @*<div style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">*@@item.Body
+                                        @*</div>*@
+                                    </FluentLabel>
+                                    <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
+                                </FluentStack>
+
+                            </FluentGridItem>
+                        </FluentGrid>
+                    </FluentStack>
+                    <FluentDivider Role="DividerRole.Presentation" />
+                }
             }
         }
-    }
     </FluentStack>
-    <hr />
-</div>
+</FluentStack>
+<hr />
+@*</div>*@
 @*}
 *@
 @code {
@@ -469,7 +470,7 @@ else
         requestMessage.RequestUri = new Uri(Program.GptUrl!);
 
         string json =
-                                            $$""""
+                                                    $$""""
                     {
                       "messages": [{"role":"system","content":"Context: - 私の名前はほのかです。"},
                        {"role":"user","content":"{{message}}"}],
@@ -553,7 +554,7 @@ else
         }
     }
 
-    
+
 
     /// <summary>
     /// メッセージ送信
