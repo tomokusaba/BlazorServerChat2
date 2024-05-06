@@ -193,9 +193,9 @@ else
                         <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1">
                             <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
                                 <div>
-                                    @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
+                                    @if (@DbContext.UserChatSetting.Find(item.UserId) is not null && @DbContext.UserChatSetting.Find(item.UserId)!.IconNumber != 0)
                                     {
-                                        <img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault()!)" />
+                                        <img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x  => x.IconNumber == (DbContext.UserChatSetting.Find(@item.UserId)!).IconNumber).Select(x => x.Icon).First()!)" />
                                     }
                                     else
                                     {
@@ -245,9 +245,9 @@ else
                                 <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1">
                                     <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
                                         <div>
-                                            @if (@DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault() != 0)
+                                    @if (@DbContext.UserChatSetting.Find(item.UserId) is not null && @DbContext.UserChatSetting.Find(item.UserId)!.IconNumber != 0)
                                             {
-                                                <img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x => x.IconNumber == @DbContext.UserChatSetting.Where(x => x.Id == @item.UserId).Select(x => x.IconNumber).FirstOrDefault()).Select(x => x.Icon).FirstOrDefault()!)" />
+                                        <img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x  => x.IconNumber == (DbContext.UserChatSetting.Find(@item.UserId)!).IconNumber).Select(x => x.Icon).First()!)" />
                                             }
                                             else
                                             {

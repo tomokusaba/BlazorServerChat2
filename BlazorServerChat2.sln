@@ -7,10 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorServerChat2", "Blazor
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		aaaa|Any CPU = aaaa|Any CPU
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EBA14433-7054-49A0-9C4C-EC587F530AA1}.aaaa|Any CPU.ActiveCfg = aaaa|Any CPU
+		{EBA14433-7054-49A0-9C4C-EC587F530AA1}.aaaa|Any CPU.Build.0 = aaaa|Any CPU
 		{EBA14433-7054-49A0-9C4C-EC587F530AA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EBA14433-7054-49A0-9C4C-EC587F530AA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBA14433-7054-49A0-9C4C-EC587F530AA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
