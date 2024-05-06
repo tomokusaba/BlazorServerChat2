@@ -7,30 +7,32 @@
 		<UserSecretsId>aspnet-BlazorServerChat2-F0A9D83A-563B-466C-9E4C-6FA6E84CEE5D</UserSecretsId>
 		<ApplicationInsightsResourceId>/subscriptions/de4b03f6-f324-4e64-ac59-f00e453f31fa/resourceGroups/abiyaapplicationInsight/providers/microsoft.insights/components/BlazorServerChat2</ApplicationInsightsResourceId>
 		<AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+		<Configurations>Debug;Release;aaaa</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.0.0" />
+		<PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.1.1" />
 		<PackageReference Include="Blazor.Markdown" Version="1.0.0" />
-		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.0" />
+		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.4" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.4" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.4">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Caching.Redis" Version="2.2.0" />
-		<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.0.0" />
-		<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Emoji" Version="4.0.0" />
-		<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.0.0" />
-		<PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-rc3" />
-		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.0" />
-		<PackageReference Include="Radzen.Blazor" Version="4.21.3" />
+		<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.7.2" />
+		<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Emoji" Version="4.6.0" />
+		<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.7.2" />
+		<PackageReference Include="Microsoft.SemanticKernel" Version="1.10.0" />
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.8.1" />
+		<PackageReference Include="Radzen.Blazor" Version="4.31.1" />
 	</ItemGroup>
 
 </Project>

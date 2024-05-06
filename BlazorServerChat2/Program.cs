@@ -40,8 +40,8 @@ var redis = ConnectionMultiplexer.Connect(RedisConnString);
 builder.Services.AddSession(options =>
 {
     options.Cookie.Name = "YourAppCookieName";
-    options.IdleTimeout = TimeSpan.FromDays(1000);
-    options.Cookie.HttpOnly = true;
+    options.IdleTimeout = TimeSpan.FromSeconds(10);
+    options.Cookie.IsEssential = true;
 
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -54,25 +54,25 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
-    options.Cookie.Name = "YourAppCookieName";
-    options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromDays(1000);
+//builder.Services.ConfigureApplicationCookie(options =>
+//{
+//    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+//    options.Cookie.Name = "YourAppCookieName";
+//    options.ExpireTimeSpan = TimeSpan.FromDays(1000);
 
-    options.LoginPath = "/Identity/Account/Login";
-    // ReturnUrlParameter requires 
-    //using Microsoft.AspNetCore.Authentication.Cookies;
-    options.ReturnUrlParameter = CookieAuthenticationDefaults.ReturnUrlParameter;
-    options.SlidingExpiration = true;
-});
+//    options.LoginPath = "/Identity/Account/Login";
+//    // ReturnUrlParameter requires 
+//    //using Microsoft.AspNetCore.Authentication.Cookies;
+//    options.ReturnUrlParameter = CookieAuthenticationDefaults.ReturnUrlParameter;
+//    options.SlidingExpiration = true;
+//});
 
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
     options.ValidationInterval = TimeSpan.FromDays(3);
 
 });
+builder.Services.AddOpenTelemetry();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient();
@@ -96,6 +96,7 @@ builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
 builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
+
 var _telemetryClient = app.Services.GetRequiredService<TelemetryClient>();
 
 var meterListener = new MeterListener();
