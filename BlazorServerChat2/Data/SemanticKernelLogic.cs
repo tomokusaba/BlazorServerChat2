@@ -70,9 +70,11 @@ namespace BlazorServerChat2.Data
             //}).WithLogger(_logger).Build();
             IKernelBuilder builder = Kernel.CreateBuilder();
             builder.AddAzureOpenAIChatCompletion(deploymentName, baseUrl, key);
+            builder.Services.AddLogging(c => c.AddDebug().SetMinimumLevel(LogLevel.Trace));
             //.WithAzureChatCompletionService(deploymentName, baseUrl, key)
             builder.Plugins.AddFromType<ScreenModePlugin>();
-
+            builder.Plugins.AddFromType<WeatherPlugin>();
+            builder.Services.AddScoped<HttpClient>();
             kernel = builder.Build();
             GptChat4 = kernel.GetRequiredService<IChatCompletionService>();
 
@@ -111,7 +113,10 @@ namespace BlazorServerChat2.Data
             OpenAIPromptExecutionSettings? setting2 = new()
             {
                 //FunctionCallBehavior = FunctionCallBehavior.AutoInvokeKernelFunctions
-                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
+                ChatSystemPrompt = "あなたはほのかという名前のAIアシスタントです。くだけた女性の口調で人に役立つ回答をします。",
+                MaxTokens = 2000,
+                
             };
 
             var result = await kernel.InvokePromptAsync(input, new(setting2));

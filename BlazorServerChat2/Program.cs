@@ -88,6 +88,7 @@ builder.Services.AddSingleton<Room>();
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddSingleton<SemanticKernelLogic>();
 builder.Services.AddScoped<ScreenModePlugin>();
+builder.Services.AddScoped<WeatherPlugin>();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddApplicationInsights();
