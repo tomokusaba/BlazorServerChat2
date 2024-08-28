@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FluentUI.AspNetCore.Components;
-using StackExchange.Redis;
+//using StackExchange.Redis;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
@@ -30,12 +30,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 var RedisConnString = builder.Configuration.GetConnectionString("Redis");
-builder.Services.AddDistributedRedisCache(options =>
-{
-    options.Configuration = RedisConnString;
-    options.InstanceName = "myapp.";
-});
-var redis = ConnectionMultiplexer.Connect(RedisConnString);
+//builder.Services.AddDistributedRedisCache(options =>
+//{
+//    options.Configuration = RedisConnString;
+//    options.InstanceName = "myapp.";
+//});
+//var redis = ConnectionMultiplexer.Connect(RedisConnString);
 //builder.Services.AddDataProtection().SetApplicationName("MyApp").PersistKeysToRedis(redis, "DataProtection-Keys");
 builder.Services.AddSession(options =>
 {
