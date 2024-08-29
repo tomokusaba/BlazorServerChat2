@@ -70,7 +70,7 @@ namespace BlazorServerChat2.Data
             //}).WithLogger(_logger).Build();
             IKernelBuilder builder = Kernel.CreateBuilder();
             builder.AddAzureOpenAIChatCompletion(deploymentName, baseUrl, key);
-            builder.Services.AddLogging(c => c.AddDebug().SetMinimumLevel(LogLevel.Trace));
+            builder.Services.AddLogging(c => c.AddOpenTelemetry().SetMinimumLevel(LogLevel.Trace));
             //.WithAzureChatCompletionService(deploymentName, baseUrl, key)
             builder.Plugins.AddFromType<ScreenModePlugin>();
             builder.Plugins.AddFromType<WeatherPlugin>();

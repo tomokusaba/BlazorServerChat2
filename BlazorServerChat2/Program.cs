@@ -90,7 +90,7 @@ builder.Services.AddSingleton<SemanticKernelLogic>();
 builder.Services.AddScoped<ScreenModePlugin>();
 builder.Services.AddScoped<WeatherPlugin>();
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+builder.Logging.AddOpenTelemetry();
 builder.Logging.AddApplicationInsights();
 builder.Logging.AddFilter("Microsoft.SemanticKernel", LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
