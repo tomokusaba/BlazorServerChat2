@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
 //using StackExchange.Redis;
 using System.Diagnostics;
@@ -89,6 +90,10 @@ builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddSingleton<SemanticKernelLogic>();
 builder.Services.AddScoped<ScreenModePlugin>();
 builder.Services.AddScoped<WeatherPlugin>();
+builder.Services.AddHttpLogging(c =>
+{
+    
+});
 builder.Logging.ClearProviders();
 builder.Logging.AddOpenTelemetry();
 builder.Logging.AddApplicationInsights();
@@ -136,7 +141,7 @@ activityListener.ShouldListenTo =
 
 ActivitySource.AddActivityListener(activityListener);
 
-
+app.UseHttpLogging();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -156,6 +161,7 @@ app.MapHub<BlazorChatHub>(BlazorChatHub.HubUrl);
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
 //app.UseCookiePolicy();
 app.UseRouting();
 app.UseSession();
