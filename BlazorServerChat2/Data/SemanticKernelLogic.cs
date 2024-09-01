@@ -1,4 +1,5 @@
-﻿using BlazorApp31.Plugin;
+﻿using Azure.AI.OpenAI;
+using BlazorApp31.Plugin;
 using Markdig;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -7,6 +8,7 @@ using Microsoft.IdentityModel.Abstractions;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using NuGet.Packaging.Core;
 using System.Diagnostics.Metrics;
 
 namespace BlazorServerChat2.Data
@@ -108,28 +110,30 @@ namespace BlazorServerChat2.Data
             var setting = new OpenAIPromptExecutionSettings()
             {
                 MaxTokens = 2000,
+                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
             };
 
+#pragma warning disable SKEXP0010 // 種類は、評価の目的でのみ提供されています。将来の更新で変更または削除されることがあります。続行するには、この診断を非表示にします。
             OpenAIPromptExecutionSettings? setting2 = new()
             {
                 //FunctionCallBehavior = FunctionCallBehavior.AutoInvokeKernelFunctions
                 ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
                 ChatSystemPrompt = "あなたはほのかという名前のAIアシスタントです。くだけた女性の口調で人に役立つ回答をします。",
                 MaxTokens = 2000,
-                
             };
+#pragma warning restore SKEXP0010 // 種類は、評価の目的でのみ提供されています。将来の更新で変更または削除されることがあります。続行するには、この診断を非表示にします。
 
-            var result = await kernel.InvokePromptAsync(input, new(setting2));
-
-            var reply = await GptChat4.GetChatMessageContentAsync(chatHistory, setting);
-            if (result != null)
-            {
-                log.LogInformation("result : {}", result);
-                reply.InnerContent = result.ToString();
-            }
+            //FunctionResult result = await kernel.InvokePromptAsync(input, new(setting2));
+            //FunctionResult result = null!;
+            var reply = await GptChat4.GetChatMessageContentAsync(chatHistory, setting, kernel);
+            //if (result != null)
+            //{
+            //    log.LogInformation("result : {}", result);
+            //    reply.InnerContent = result.ToString();
+            //}
             log.LogInformation("reply : {}", reply);
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseAutoLinks().UseBootstrap().UseDiagrams().UseGridTables().Build();
-            var htmlReply = Markdown.ToHtml(reply.InnerContent?.ToString(), pipeline);
+            var htmlReply = Markdown.ToHtml(reply.ToString(), pipeline);
             log.LogInformation("htmlReply : {}", htmlReply);
             chatHistory.AddAssistantMessage(reply.InnerContent?.ToString() ?? string.Empty);
             return htmlReply;
