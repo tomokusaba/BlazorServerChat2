@@ -6,16 +6,15 @@
 
 <h3>ほのかさんのネタ帳追加</h3>
 
-<RadzenTextBox @bind-Value="@TextboxValue" />
-<RadzenButton Click="@onclick" Text="追加" />
+<FluentTextField @bind-Value="@TextboxValue" />
+<FluentButton OnClick="@onclick" Text="追加" />
 <br />
 例）「はどこのプロ野球チームが好きなの？」と入れると「○○さんはどこのプロ野球チームが好きなの？」と質問してくれます。
-<RadzenDataGrid Data=@NetaMastars TItem="NetaMastar">
-    <Columns>
-        <RadzenDataGridColumn TItem="NetaMastar" property="Neta" Title="ほのかさんのネタ帳"></RadzenDataGridColumn>
-    </Columns>
-</RadzenDataGrid>
-
+@if (NetaMastars != null) {
+<FluentDataGrid Items=@NetaMastars.AsQueryable() >
+        <PropertyColumn Property="@(p => p.Neta)" Title="ほのかさんのネタ帳" />
+</FluentDataGrid>
+}
 @code {
     string TextboxValue = string.Empty;
 

@@ -1,5 +1,5 @@
 ﻿@inject AuthenticationStateProvider AuthenticationStateProvider
-<div class="top-row ps-3 navbar navbar-dark">
+@*<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">あびや</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -39,7 +39,36 @@
         </div>
         }
     </nav>
-</div>
+</div>*@
+
+<FluentAppBar Style="height:100%">
+    <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.Chat())"
+                      IconActive="@(new Icons.Filled.Size24.Chat())"
+                      Text="あびやチャット"
+                      Href="/" />
+
+    <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.PersonMoney())"
+                      IconActive="@(new Icons.Filled.Size24.PersonMoney())"
+                      Text="お財布リスト"
+                      Href="osaifu" />
+    <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.Settings())"
+                      IconActive="@(new Icons.Filled.Size24.Settings())"
+                      Text="あびや設定"
+                      Href="config" />
+    @if (menu)
+    {
+        <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.CollectionsAdd())"
+                          IconActive="@(new Icons.Filled.Size24.CollectionsAdd())"
+                          Text="ネタ追加"
+                          Href="neta" />
+        <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.Icons())"
+                          IconActive="@(new Icons.Filled.Size24.Icons())"
+                          Text="アイコンアップロード"
+                          Href="upload" />
+    }
+</FluentAppBar>
+
+
 
 @code {
     private bool collapseNavMenu = true;

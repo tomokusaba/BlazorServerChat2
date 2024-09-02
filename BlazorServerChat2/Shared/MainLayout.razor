@@ -4,7 +4,7 @@
 
 <PageTitle>あびや</PageTitle>
 
-<div class="page">
+@*<div class="page">
     <div class="sidebar">
         <NavMenu />
     </div>
@@ -20,7 +20,34 @@
             <FluentKeyCodeProvider />
         </article>
     </main>
-</div>
+</div>*@
+
+<FluentLayout Style="height: 100%">
+
+    <FluentHeader>
+        <FluentStack Orientation="Orientation.Horizontal"HorizontalAlignment="HorizontalAlignment.Left">
+            あびや
+        </FluentStack>
+        
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" VerticalAlignment="VerticalAlignment.Center">
+            <LoginDisplay />
+            <FluentSwitch @bind-Value="@IsDark" @ref="@Switch" />
+        </FluentStack>
+    </FluentHeader>
+    <FluentStack Orientation="Orientation.Horizontal" Width="100%" Style="height:stretch">
+        <NavMenu />
+        <FluentBodyContent>
+            <ChildContent>
+                @Body
+            </ChildContent>
+        </FluentBodyContent>
+    </FluentStack>
+    <FluentToastProvider />
+    <FluentDialogProvider />
+    <FluentTooltipProvider />
+    <FluentMessageBarProvider />
+</FluentLayout>
+
 
 @code {
     private bool IsDarkMode { get; set; } = false;

@@ -25,9 +25,8 @@
 @implements IAsyncDisposable
 
 <PageTitle>あびや</PageTitle>
-<FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="10">
-    <FluentLabel Typo="Typography.H1">あびやチャット</FluentLabel>
-    <hr />
+<FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="20">
+    <FluentLabel Typo="Typography.PageTitle">あびやチャット</FluentLabel>
     @*
     @if (!_isChatting)
     {
@@ -48,7 +47,7 @@
     else
     {
     // banner to show current user*@
-    <div class="alert alert-secondary mt-4" role="alert">
+    <FluentCard Width="50%">
         <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" HorizontalGap="30">
             <FluentCounterBadge Count="Kingaku" Appearance="Appearance.Accent" Max="9000000">
                 <FluentButton>
@@ -71,18 +70,18 @@
                 }
             }
         </span>
-    </div>
+    </FluentCard>
     <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Left">
         <FluentGrid Style="width:100%">
 
-            <FluentGridItem xs="9" Style="align-items:center;display:flex;">
+            <FluentGridItem xs="8" Style="align-items:center;display:flex;">
 
                 <FluentTextField @ref="fluentTextField"
                                  AutoComplete="on"
                                  Id="ChatComment"
                                  Name="ChatComment"
                                  TextFieldType="TextFieldType.Text"
-                                 style="width:95%;"
+                                 style="width:80%;"
                                  Placeholder="コメント入力欄"
                                  Label="コメント入力"
                                  AriaLabel="ここにチャットで発言するコメントを入力してください"
@@ -90,7 +89,7 @@
                 </FluentTextField>&nbsp;
 
             </FluentGridItem>
-            <FluentGridItem xs="3">
+            <FluentGridItem xs="4">
                 <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="5">
                     <FluentButton Appearance="Appearance.Accent" OnClick="@(s =>SendAsync(_newMessage))" aria-label="発言するときはこのボタンを押してください">発言</FluentButton>
                     <FluentButton @ref="honoka" Appearance="Appearance.Neutral" OnClick="@(s =>TalkGPT(_newMessage))">ほのかさんに話しかける</FluentButton>
