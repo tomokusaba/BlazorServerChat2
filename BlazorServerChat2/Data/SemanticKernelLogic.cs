@@ -38,38 +38,7 @@ namespace BlazorServerChat2.Data
             string key = _configuration.GetValue<string>("Settings:OpenAIKey") ?? string.Empty;
             var meterListener = new MeterListener();
 
-            //meterListener.InstrumentPublished = (Instrument, listener) =>
-            //{
-            //    if (Instrument.Meter.Name.StartsWith("Microsoft.SemanticKernel", StringComparison.Ordinal))
-            //    {
-            //        listener.EnableMeasurementEvents(Instrument);
-            //    }
-            //    if (Instrument.Meter.Name.StartsWith("SemanticKernelLogic", StringComparison.Ordinal))
-            //    {
-            //        listener.EnableMeasurementEvents(Instrument);
-            //    }
-            //    if (Instrument.Meter.Name.StartsWith("AzureChatCompletion", StringComparison.Ordinal))
-            //    {
-            //        listener.EnableMeasurementEvents(Instrument);
-            //    }
-            //};
 
-            //meterListener.SetMeasurementEventCallback<double>((instrument, measurment, tags, state) =>
-            //{
-            //    _telemetryClient.GetMetric(instrument.Name).TrackValue(measurment);
-            //});
-
-            //meterListener.Start();
-
-
-
-            //_telemetryClient.StartOperation<DependencyTelemetry>("ApplicationInsights.Example");
-
-            //kernel = new KernelBuilder().Configure(c =>
-            //{
-            //    c.AddAzureChatCompletionService( deploymentName, baseUrl, key);
-
-            //}).WithLogger(_logger).Build();
             IKernelBuilder builder = Kernel.CreateBuilder();
             builder.AddAzureOpenAIChatCompletion(deploymentName, baseUrl, key);
             builder.Services.AddLogging(c => c.AddOpenTelemetry().SetMinimumLevel(LogLevel.Trace));

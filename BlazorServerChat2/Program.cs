@@ -97,6 +97,10 @@ builder.Services.AddHttpLogging(c =>
 builder.Logging.ClearProviders();
 builder.Logging.AddOpenTelemetry();
 builder.Logging.AddApplicationInsights();
+if (OperatingSystem.IsWindows())
+{
+    builder.Logging.AddEventLog();
+}
 builder.Logging.AddFilter("Microsoft.SemanticKernel", LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
 builder.Services.AddApplicationInsightsTelemetry();

@@ -10,10 +10,11 @@
 <FluentButton OnClick="@onclick" Text="追加" />
 <br />
 例）「はどこのプロ野球チームが好きなの？」と入れると「○○さんはどこのプロ野球チームが好きなの？」と質問してくれます。
-@if (NetaMastars != null) {
-<FluentDataGrid Items=@NetaMastars.AsQueryable() >
-        <PropertyColumn Property="@(p => p.Neta)" Title="ほのかさんのネタ帳" />
-</FluentDataGrid>
+@if (NetaMastars != null)
+{
+    <FluentDataGrid Items=@NetaMastars.AsQueryable() >
+            <PropertyColumn Property="@(p => p.Neta)" Title="ほのかさんのネタ帳" />
+    </FluentDataGrid>
 }
 @code {
     string TextboxValue = string.Empty;
@@ -25,7 +26,8 @@
         NetaMastars = DbContext.NetaMastar.ToList();
     }
 
-    void onclick() {
+    void onclick()
+    {
         NetaMastar neta = new NetaMastar();
         neta.Neta = TextboxValue;
         DbContext.Add(neta);

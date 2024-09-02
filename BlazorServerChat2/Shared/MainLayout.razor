@@ -28,7 +28,7 @@
         <FluentStack Orientation="Orientation.Horizontal"HorizontalAlignment="HorizontalAlignment.Left">
             あびや
         </FluentStack>
-        
+
         <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" VerticalAlignment="VerticalAlignment.Center">
             <LoginDisplay />
             <FluentSwitch @bind-Value="@IsDark" @ref="@Switch"  CheckedMessage="DarkMode" UncheckedMessage="LightMode" />
@@ -68,7 +68,7 @@
         StateHasChanged();
     }
 
-    public static bool DarkMode = false; 
+    public static bool DarkMode = false;
 
     public bool IsDark
     {
@@ -91,7 +91,7 @@
         }
     }
 
-    
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -108,7 +108,7 @@
             }
             StateHasChanged();
 
-            
+
         }
     }
 }
