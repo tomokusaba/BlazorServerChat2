@@ -31,7 +31,7 @@
         
         <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" VerticalAlignment="VerticalAlignment.Center">
             <LoginDisplay />
-            <FluentSwitch @bind-Value="@IsDark" @ref="@Switch" />
+            <FluentSwitch @bind-Value="@IsDark" @ref="@Switch"  CheckedMessage="DarkMode" UncheckedMessage="LightMode" />
         </FluentStack>
     </FluentHeader>
     <FluentStack Orientation="Orientation.Horizontal" Width="100%" Style="height:stretch">
@@ -46,6 +46,7 @@
     <FluentDialogProvider />
     <FluentTooltipProvider />
     <FluentMessageBarProvider />
+    <FluentKeyCodeProvider />
 </FluentLayout>
 
 
