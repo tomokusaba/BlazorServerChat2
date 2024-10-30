@@ -164,7 +164,8 @@ app.MapBlazorHub();
 app.MapHub<BlazorChatHub>(BlazorChatHub.HubUrl);
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
+//app.UseStaticFiles();
+app.MapStaticAssets();
 
 //app.UseCookiePolicy();
 app.UseRouting();
