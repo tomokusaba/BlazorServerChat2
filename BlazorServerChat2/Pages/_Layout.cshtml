@@ -9,7 +9,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-    <link href="_content/Microsoft.Fast.Components.FluentUI/css/reboot.css" rel="stylesheet" />
     <link href="css/site.css" rel="stylesheet" />
     <link href="BlazorServerChat2.styles.css" rel="stylesheet" />
     <link rel="stylesheet" href="_content/Radzen.Blazor/css/default-base.css">
@@ -17,7 +16,8 @@
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-176052338-2"></script>
-     
+    <ImportMap />
+    <HeadOutlet />
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
@@ -28,7 +28,7 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9638606265613636"
      crossorigin="anonymous"></script>
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
-     @Html.Raw(JavaScriptSnippet.FullScript)
+    @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
 <body style="height:100%">
     @RenderBody()
