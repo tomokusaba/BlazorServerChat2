@@ -1,5 +1,6 @@
 ﻿using Azure.AI.OpenAI;
 using BlazorApp31.Plugin;
+using BlazorServerChat2.Data.Plugin;
 using Markdig;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -45,6 +46,7 @@ namespace BlazorServerChat2.Data
             //.WithAzureChatCompletionService(deploymentName, baseUrl, key)
             builder.Plugins.AddFromType<ScreenModePlugin>();
             builder.Plugins.AddFromType<WeatherPlugin>();
+            builder.Plugins.AddFromType<Muse>();
             builder.Services.AddScoped<HttpClient>();
             kernel = builder.Build();
             GptChat4 = kernel.GetRequiredService<IChatCompletionService>();
