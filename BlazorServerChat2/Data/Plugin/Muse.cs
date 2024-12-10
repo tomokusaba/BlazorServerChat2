@@ -4718,7 +4718,7 @@ public class Muse
 			""";
 	}
 
-	[Description("Museファイルのロード")]
+	[KernelFunction, Description("Museファイルのロード")]
 	public string Get5_1()
 	{
 		return """
@@ -4767,7 +4767,7 @@ public class Muse
 			""";
 	}
 
-	[Description("演奏の仕方")]
+	[KernelFunction, Description("演奏の仕方")]
 	public string Get5_2()
 	{
 		return """
@@ -4810,7 +4810,7 @@ public class Muse
 """;
 	}
 
-	[Description("シークバーの扱い方")]
+	[KernelFunction, Description("シークバーの扱い方")]
 	public string Get5_3()
 	{
 		return """
@@ -4839,7 +4839,7 @@ public class Muse
 """;
 	}
 
-	[Description("キー操作による演奏制御")]
+	[KernelFunction, Description("キーボード操作による演奏制御")]
 	public string Get5_4()
 	{
 		return """
