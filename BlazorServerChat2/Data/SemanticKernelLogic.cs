@@ -80,7 +80,7 @@ namespace BlazorServerChat2.Data
             chatHistory.AddUserMessage(input);
             var setting = new OpenAIPromptExecutionSettings()
             {
-                MaxTokens = 2000,
+                MaxTokens = 16384,
                 ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
             };
 
