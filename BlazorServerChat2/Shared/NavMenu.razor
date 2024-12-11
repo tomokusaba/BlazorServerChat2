@@ -92,9 +92,12 @@
         email = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").Select(x => x.Value).FirstOrDefault();
         list.Add("picicon@gmail.com");
         list.Add("tomokusaba@gmail.com");
-        if (list.Contains(email))
+        if (email != null)
         {
-            menu = true;
+            if (list.Contains(email))
+            {
+                menu = true;
+            }
         }
         StateHasChanged();
     }
