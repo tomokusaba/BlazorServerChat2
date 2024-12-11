@@ -24,15 +24,15 @@
 
 <RadzenButton Text="保存" Click=SaveColor />
 @code {
-    IEnumerable<UserChatSetting> userChatSettings;
+    IEnumerable<UserChatSetting> userChatSettings = default!;
 
-    IEnumerable<IconMaster> IconMasters;
-    string debug;
-    string UserId;
+    IEnumerable<IconMaster> IconMasters = default!;
+    string? debug;
+    string? UserId;
     int value;
     string color = "rgb(0,0,0)";
 
-    byte[] icon;
+    byte[]? icon;
     protected override async Task OnInitializedAsync()
     {
         userChatSettings = DbContext.UserChatSetting.ToList();
