@@ -47,6 +47,8 @@ namespace BlazorServerChat2.Data
             builder.Plugins.AddFromType<ScreenModePlugin>();
             builder.Plugins.AddFromType<WeatherPlugin>();
             builder.Plugins.AddFromType<Muse>();
+           // builder.Plugins.AddFromType<MuseInst>();
+            builder.Plugins.AddFromType<MuseUI>();
             builder.Services.AddScoped<HttpClient>();
             kernel = builder.Build();
             GptChat4 = kernel.GetRequiredService<IChatCompletionService>();
