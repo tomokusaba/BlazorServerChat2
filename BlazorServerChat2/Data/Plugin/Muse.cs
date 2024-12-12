@@ -6610,7 +6610,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)再現 繰り返し")]
+	[KernelFunction, Description("(文法リファレンス)再現 繰り返し ,")]
 	public string Get5_30()
 	{
 		return """
@@ -6639,7 +6639,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)連結")]
+	[KernelFunction, Description("(文法リファレンス)連結 &")]
 	public string Get5_31()
 	{
 		return """
@@ -6660,7 +6660,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)フィンガー宣言")]
+	[KernelFunction, Description("(文法リファレンス)フィンガー宣言 #")]
 	public string Get5_32()
 	{
 		return """
@@ -6682,7 +6682,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)音名タイプ")]
+	[KernelFunction, Description("(文法リファレンス)音名タイプ x")]
 	public string Get5_33()
 	{
 		return """
@@ -6708,7 +6708,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)絶対オクターブ")]
+	[KernelFunction, Description("(文法リファレンス)絶対オクターブ o")]
 	public string Get5_34()
 	{
 		return """
@@ -6725,7 +6725,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)相対オクターブ")]
+	[KernelFunction, Description("(文法リファレンス)相対オクターブ < or >")]
 	public string Get5_35()
 	{
 		return """
@@ -6740,7 +6740,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)強弱")]
+	[KernelFunction, Description("(文法リファレンス)強弱 v")]
 	public string Get5_36()
 	{
 		return """
@@ -6766,7 +6766,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)アクセント")]
+	[KernelFunction, Description("(文法リファレンス)アクセント w")]
 	public string Get5_37()
 	{
 		return """
@@ -6786,7 +6786,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)音部記号")]
+	[KernelFunction, Description("(文法リファレンス)音部記号 ?")]
 	public string Get5_38()
 	{
 		return """
@@ -6811,7 +6811,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)出音グルーヴ")]
+	[KernelFunction, Description("(文法リファレンス)出音グルーヴ p")]
 	public string Get5_39()
 	{
 		return """
@@ -6833,7 +6833,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)止音グルーヴ")]
+	[KernelFunction, Description("(文法リファレンス)止音グルーヴ q")]
 	public string Get5_40()
 	{
 		return """
@@ -6857,7 +6857,7 @@ public class Muse
 """;
 	}
 
-	[KernelFunction, Description("(文法リファレンス)移調楽器")]
+	[KernelFunction, Description("(文法リファレンス)移調楽器 y")]
 	public string Get5_41()
 	{
 		return """
