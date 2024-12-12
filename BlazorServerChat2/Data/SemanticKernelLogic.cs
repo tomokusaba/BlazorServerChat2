@@ -44,10 +44,10 @@ namespace BlazorServerChat2.Data
             builder.AddAzureOpenAIChatCompletion(deploymentName, baseUrl, key);
             builder.Services.AddLogging(c => c.AddOpenTelemetry().SetMinimumLevel(LogLevel.Trace));
             //.WithAzureChatCompletionService(deploymentName, baseUrl, key)
-            builder.Plugins.AddFromType<ScreenModePlugin>();
+            //builder.Plugins.AddFromType<ScreenModePlugin>();
             builder.Plugins.AddFromType<WeatherPlugin>();
             builder.Plugins.AddFromType<Muse>();
-           // builder.Plugins.AddFromType<MuseInst>();
+            builder.Plugins.AddFromType<MuseInst>();
             builder.Plugins.AddFromType<MuseUI>();
             builder.Services.AddScoped<HttpClient>();
             kernel = builder.Build();
