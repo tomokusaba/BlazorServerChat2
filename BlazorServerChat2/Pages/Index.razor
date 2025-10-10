@@ -439,6 +439,11 @@
     /// <returns></returns>
     private async Task NetaAsync()
     {
+        if (DbContext.NetaMastar.Count() == 0)
+        {
+            return;
+        }
+
         Chat chat = new Chat();
         chat.Name = _username ?? string.Empty;
         chat.Message = $"[ほのか] : {_username}さん{DbContext.NetaMastar.ToList().RandomElementAt().Neta}";

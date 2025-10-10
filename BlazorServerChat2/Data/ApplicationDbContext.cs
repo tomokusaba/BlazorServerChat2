@@ -10,6 +10,17 @@ namespace BlazorServerChat2.Data
             : base(options)
         {
         }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Chat>();
+            modelBuilder.Entity<IconMaster>();
+            modelBuilder.Entity<UserChatSetting>();
+            modelBuilder.Entity<NetaMastar>();
+            modelBuilder.Entity<MenuMaster>();
+            modelBuilder.Entity<Osaifu>();
+        }
+
         public DbSet<Chat> Chats { get; set; }
         public DbSet<IconMaster> IconMaster { get; set; }
         public DbSet<UserChatSetting> UserChatSetting { get; set; }
