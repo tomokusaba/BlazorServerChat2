@@ -1,15 +1,9 @@
-﻿using Azure.AI.OpenAI;
-using BlazorApp31.Plugin;
-using BlazorServerChat2.Data.Plugin;
+﻿using BlazorServerChat2.Data.Plugin;
 using Markdig;
 using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.Build.Logging;
-using Microsoft.IdentityModel.Abstractions;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using NuGet.Packaging.Core;
 using System.Diagnostics.Metrics;
 
 namespace BlazorServerChat2.Data
@@ -105,8 +99,12 @@ namespace BlazorServerChat2.Data
             //    reply.InnerContent = result.ToString();
             //}
             log.LogInformation("reply : {}", reply);
-            var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseAutoLinks().UseBootstrap().UseDiagrams().UseGridTables().Build();
-            var htmlReply = Markdown.ToHtml(reply.ToString(), pipeline);
+            //var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseAutoLinks().UseBootstrap().UseDiagrams().UseGridTables().Build();
+            //var htmlReply = Markdown.ToHtml(reply.ToString(), pipeline);
+            var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseEmojiAndSmiley().UseAutoLinks().UseGridTables().UseBootstrap().Build();
+            string sourceText = reply.InnerContent?.ToString() ?? string.Empty;
+            var htmlReply = Markdown.ToHtml(sourceText, pipeline);
+
             log.LogInformation("htmlReply : {}", htmlReply);
             chatHistory.AddAssistantMessage(reply.InnerContent?.ToString() ?? string.Empty);
             return htmlReply;
