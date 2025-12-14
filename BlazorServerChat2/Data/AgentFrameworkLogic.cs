@@ -8,6 +8,7 @@ using Azure.Identity;
 using OpenAI;
 using System.ComponentModel;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
 
 namespace BlazorServerChat2.Data
 {
@@ -112,6 +113,10 @@ namespace BlazorServerChat2.Data
         {
             var tools = new List<AITool>();
 
+            AddStringGetToolsFromPlugin(tools, new Muse(), prefix: "Muse");
+            AddStringGetToolsFromPlugin(tools, new MuseInst(), prefix: "MuseInst");
+            AddStringGetToolsFromPlugin(tools, new MuseUI(), prefix: "MuseUI");
+
             // WeatherPluginの関数をツールとして追加
             tools.Add(AIFunctionFactory.Create(
                 GetPlaceId,
@@ -133,6 +138,36 @@ namespace BlazorServerChat2.Data
                 description: "場所コードの地域の天気を返す"));
 
             return tools;
+        }
+
+        private static void AddStringGetToolsFromPlugin(List<AITool> tools, object plugin, string prefix)
+        {
+            var pluginType = plugin.GetType();
+            var pluginDescription = pluginType.GetCustomAttribute<DescriptionAttribute>()?.Description;
+
+            var methods = pluginType
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+                .Where(m => !m.IsSpecialName)
+                .Where(m => m.ReturnType == typeof(string))
+                .Where(m => m.GetParameters().Length == 0)
+                .OrderBy(m => m.Name, StringComparer.Ordinal);
+
+            foreach (var method in methods)
+            {
+                var methodDescription = method.GetCustomAttribute<DescriptionAttribute>()?.Description;
+
+                var toolName = $"{prefix}_{method.Name}";
+                var toolDescription = string.IsNullOrWhiteSpace(methodDescription)
+                    ? (pluginDescription ?? toolName)
+                    : (string.IsNullOrWhiteSpace(pluginDescription)
+                        ? methodDescription
+                        : $"{pluginDescription}\n{methodDescription}");
+
+                tools.Add(AIFunctionFactory.Create(
+                    () => (string)method.Invoke(plugin, Array.Empty<object>())!,
+                    name: toolName,
+                    description: toolDescription));
+            }
         }
 
         /// <summary>
