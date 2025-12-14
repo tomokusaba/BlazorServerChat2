@@ -1,23 +1,18 @@
+using Azure.AI.OpenAI;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using BlazorApp31.Plugin;
 using BlazorServerChat2.Areas.Identity;
 using BlazorServerChat2.Data;
 using BlazorServerChat2.Hubs;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.AI;
 using Microsoft.FluentUI.AspNetCore.Components;
+using OpenTelemetry.Metrics;
 //using StackExchange.Redis;
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,13 +62,48 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 //    options.ReturnUrlParameter = CookieAuthenticationDefaults.ReturnUrlParameter;
 //    options.SlidingExpiration = true;
 //});
+if (OperatingSystem.IsWindows())
+{
+    builder.Logging.AddEventLog();
+}
+builder.Logging.AddFilter("Microsoft.SemanticKernel", LogLevel.Trace);
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
+var applicationInsightsConnectionString =
+    builder.Configuration["AzureMonitor:ConnectionString"]
+    ?? builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]
+    ?? builder.Configuration["ApplicationInsights:ConnectionString"]
+    ?? string.Empty;
+
+var openTelemetrySourceName = builder.Environment.ApplicationName;
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService(openTelemetrySourceName))
+    .WithTracing(tracing => tracing
+        .AddSource(openTelemetrySourceName)
+        .AddSource("*Microsoft.Extensions.AI")
+        .AddSource("*Microsoft.Extensions.Agents*")
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation())
+    .WithMetrics(metrics => metrics
+        .AddMeter("*Microsoft.Agents.AI")
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation())
+    .UseAzureMonitor(options =>
+    {
+        if (!string.IsNullOrWhiteSpace(applicationInsightsConnectionString))
+        {
+            options.ConnectionString = applicationInsightsConnectionString;
+        }
+    });
+
+builder.Services.AddApplicationInsightsTelemetry();
+
 
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
     options.ValidationInterval = TimeSpan.FromDays(3);
 
 });
-builder.Services.AddOpenTelemetry();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient();
@@ -87,63 +117,79 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<ClientHub>();
 builder.Services.AddSingleton<Room>();
 builder.Services.AddSingleton<HttpClient>();
-builder.Services.AddSingleton<SemanticKernelLogic>();
+//builder.Services.AddSingleton<SemanticKernelLogic>();
+            string baseUrl = builder.Configuration.GetValue<string>("Settings:BaseUrl") ?? string.Empty;
+            string key = builder.Configuration.GetValue<string>("Settings:OpenAIKey") ?? string.Empty;
+            string deploymentName = builder.Configuration.GetValue<string>("Settings:DeploymentName") ?? string.Empty;
+            var client = new AzureOpenAIClient(
+                new Uri(baseUrl),
+                new System.ClientModel.ApiKeyCredential(key))
+                .GetChatClient(deploymentName)
+                .AsIChatClient()
+                .AsBuilder()
+                .UseOpenTelemetry(sourceName: openTelemetrySourceName, configure: (cfg) => cfg.EnableSensitiveData = builder.Environment.IsDevelopment())
+                .Build();
+builder.Services.AddSingleton<IChatClient>(client);
+builder.Services.AddSingleton<AgentFrameworkLogic>();
 builder.Services.AddScoped<ScreenModePlugin>();
 builder.Services.AddScoped<WeatherPlugin>();
 builder.Services.AddHttpLogging(c =>
 {
     
 });
-builder.Logging.ClearProviders();
-builder.Logging.AddOpenTelemetry();
-builder.Logging.AddApplicationInsights();
-if (OperatingSystem.IsWindows())
-{
-    builder.Logging.AddEventLog();
-}
-builder.Logging.AddFilter("Microsoft.SemanticKernel", LogLevel.Trace);
-builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
-builder.Services.AddApplicationInsightsTelemetry();
-
+//builder.Logging.ClearProviders();
 var app = builder.Build();
 
-var _telemetryClient = app.Services.GetRequiredService<TelemetryClient>();
+//var _telemetryClient = app.Services.GetRequiredService<TelemetryClient>();
 
-var meterListener = new MeterListener();
+//var meterListener = new MeterListener();
 
-meterListener.InstrumentPublished = (Instrument, listener) =>
-{
-    if (Instrument.Meter.Name.StartsWith("Microsoft.SemanticKernel", StringComparison.Ordinal))
-    {
-        listener.EnableMeasurementEvents(Instrument);
-    }
-    if (Instrument.Meter.Name.StartsWith("SemanticKernelLogic", StringComparison.Ordinal))
-    {
-        listener.EnableMeasurementEvents(Instrument);
-    }
-    if (Instrument.Meter.Name.StartsWith("AzureChatCompletion", StringComparison.Ordinal))
-    {
-        listener.EnableMeasurementEvents(Instrument);
-    }
+//meterListener.InstrumentPublished = (Instrument, listener) =>
+//{
+//    if (Instrument.Meter.Name.StartsWith("Microsoft.SemanticKernel", StringComparison.Ordinal))
+//    {
+//        listener.EnableMeasurementEvents(Instrument);
+//    }
+//    if (Instrument.Meter.Name.StartsWith("SemanticKernelLogic", StringComparison.Ordinal))
+//    {
+//        listener.EnableMeasurementEvents(Instrument);
+//    }
+//    if (Instrument.Meter.Name.StartsWith("AgentFrameworkLogic", StringComparison.Ordinal))
+//    {
+//        listener.EnableMeasurementEvents(Instrument);
+//    }
+//    if (Instrument.Meter.Name.StartsWith("AzureChatCompletion", StringComparison.Ordinal))
+//    {
+//        listener.EnableMeasurementEvents(Instrument);
+//    }
+//    // Microsoft Agent Framework と Microsoft.Extensions.AI のメトリクス
+//    if (Instrument.Meter.Name.StartsWith("Microsoft.Extensions.AI", StringComparison.Ordinal))
+//    {
+//        listener.EnableMeasurementEvents(Instrument);
+//    }
+//    if (Instrument.Meter.Name.StartsWith("Microsoft.Agents", StringComparison.Ordinal))
+//    {
+//        listener.EnableMeasurementEvents(Instrument);
+//    }
 
-};
+//};
 
-meterListener.SetMeasurementEventCallback<double>((instrument, measurment, tags, state) =>
-{
-    _telemetryClient.GetMetric(instrument.Name).TrackValue(measurment);
-});
+//meterListener.SetMeasurementEventCallback<double>((instrument, measurment, tags, state) =>
+//{
+//    _telemetryClient.GetMetric(instrument.Name).TrackValue(measurment);
+//});
 
-meterListener.Start();
+//meterListener.Start();
 
 
-_telemetryClient.StartOperation<DependencyTelemetry>("ApplicationInsights.Example");
-var activityListener = new ActivityListener();
+//_telemetryClient.StartOperation<DependencyTelemetry>("ApplicationInsights.Example");
+//var activityListener = new ActivityListener();
 
-activityListener.ShouldListenTo =
-    activitySource => activitySource.Name.StartsWith("Microsoft.SemanticKernel", StringComparison.Ordinal)
-    || activitySource.Name.StartsWith("AzureChatCompletion", StringComparison.Ordinal);
+//activityListener.ShouldListenTo =
+//    activitySource => activitySource.Name.StartsWith("Microsoft.SemanticKernel", StringComparison.Ordinal)
+//    || activitySource.Name.StartsWith("AzureChatCompletion", StringComparison.Ordinal);
 
-ActivitySource.AddActivityListener(activityListener);
+//ActivitySource.AddActivityListener(activityListener);
 
 app.UseHttpLogging();
 // Configure the HTTP request pipeline.

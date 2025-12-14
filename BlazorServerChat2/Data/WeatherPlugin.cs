@@ -7,7 +7,7 @@ namespace BlazorServerChat2.Data
     {
         private readonly HttpClient _client = client;
 
-        [KernelFunction, Description("""
+        [Description("""
         天気を取得する場所コードを取得します。
         対応している場所コードは下記のとおりです。
         下記に含まれない場所の場合は近くの場所の天気を代わりに取得してください。
@@ -68,7 +68,7 @@ namespace BlazorServerChat2.Data
             return res;
         }
 
-        [KernelFunction, Description("場所コードの地域の天気を返す")]
+        [Description("場所コードの地域の天気を返す")]
         public async Task<string> Weather([Description("場所コード")] int place)
         {
             return (await _client.GetAsync($"https://www.jma.go.jp/bosai/forecast/data/forecast/{place}.json")).Content.ReadAsStringAsync().Result;

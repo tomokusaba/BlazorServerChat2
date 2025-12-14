@@ -7,7 +7,7 @@ namespace BlazorServerChat2.Data.Plugin
 
     public class MuseUI
     {
-        [KernelFunction, Description("Museファイルのロード")]
+        [Description("Museファイルのロード")]
         public string Get5_1()
         {
             return """
@@ -56,7 +56,7 @@ namespace BlazorServerChat2.Data.Plugin
 			""";
         }
 
-        [KernelFunction, Description("演奏の仕方")]
+        [Description("演奏の仕方")]
         public string Get5_2()
         {
             return """
@@ -99,7 +99,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("シークバーの扱い方")]
+        [Description("シークバーの扱い方")]
         public string Get5_3()
         {
             return """
@@ -128,7 +128,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("キーボード操作による演奏制御")]
+        [Description("キーボード操作による演奏制御")]
         public string Get5_4()
         {
             return """
@@ -160,7 +160,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("楽器やドラムの試聴")]
+        [Description("楽器やドラムの試聴")]
         public string Get5_5()
         {
             return """
@@ -241,7 +241,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("メンバー情報の確認")]
+        [Description("メンバー情報の確認")]
         public string Get5_6()
         {
             return """
@@ -273,7 +273,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("フィンガー情報の確認")]
+        [Description("フィンガー情報の確認")]
         public string Get5_7()
         {
             return """
@@ -345,7 +345,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("譜面モニタの使い方")]
+        [Description("譜面モニタの使い方")]
         public string Get5_8()
         {
             return """
@@ -511,7 +511,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("音源の選択")]
+        [Description("音源の選択")]
         public string Get5_9()
         {
             return """
@@ -552,7 +552,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("サウンドフォントの活用")]
+        [Description("サウンドフォントの活用")]
         public string Get5_10()
         {
             return """
@@ -688,7 +688,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("MuseLoid音源について")]
+        [Description("MuseLoid音源について")]
         public string Get5_11()
         {
             return """
@@ -751,7 +751,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("VSTiプラグインの活用")]
+        [Description("VSTiプラグインの活用")]
         public string Get5_12()
         {
             return """
@@ -850,7 +850,7 @@ namespace BlazorServerChat2.Data.Plugin
 
 """;
         }
-        [KernelFunction, Description("演奏会場の確認")]
+        [Description("演奏会場の確認")]
         public string Get5_13()
         {
             return """
@@ -899,7 +899,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("フォントの確認")]
+        [Description("フォントの確認")]
         public string Get5_14()
         {
             return """
@@ -924,7 +924,7 @@ namespace BlazorServerChat2.Data.Plugin
 	""";
         }
 
-        [KernelFunction, Description("配色マップの活用")]
+        [Description("配色マップの活用")]
         public string Get5_15()
         {
             return """
@@ -1026,7 +1026,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("MIDIファイルの保存")]
+        [Description("MIDIファイルの保存")]
         public string Get5_16()
         {
             return """
@@ -1251,7 +1251,7 @@ namespace BlazorServerChat2.Data.Plugin
 //""";
 //        }
 
-        [KernelFunction, Description("初期化ファイルによる指定(muse.ini)")]
+        [Description("初期化ファイルによる指定(muse.ini)")]
         public string Get5_20()
         {
             return """
@@ -1299,7 +1299,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("演奏履歴について")]
+        [Description("演奏履歴について")]
         public string Get5_21()
         {
             return """
@@ -1438,7 +1438,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("繰返し演奏")]
+        [Description("繰返し演奏")]
         public string Get5_22()
         {
             return """
@@ -1475,7 +1475,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("コマンドラインによる起動")]
+        [Description("コマンドラインによる起動")]
         public string Get5_23()
         {
             return """
@@ -1527,7 +1527,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("マニュアル表示")]
+        [Description("マニュアル表示")]
         public string Get5_24()
         {
             return """

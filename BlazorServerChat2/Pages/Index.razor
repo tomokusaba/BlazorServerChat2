@@ -19,7 +19,7 @@
 @inject ClientHub clientHub
 @inject Room room
 @inject HttpClient http
-@inject SemanticKernelLogic semanticKernelLogic
+@inject AgentFrameworkLogic agentFrameworkLogic
 @inject ScreenModePlugin screenModePlugin
 @inject IKeyCodeService keyCodeService
 @implements IAsyncDisposable
@@ -450,7 +450,7 @@
         chat.UserId = UserId ?? string.Empty;
         DbContext.Chats.Add(chat);
         DbContext.SaveChanges();
-        semanticKernelLogic.NonGenerateMessage(chat.Message);
+        agentFrameworkLogic.NonGenerateMessage(chat.Message);
         Message message1 = new Message(_username ?? string.Empty, chat.Message, false, UserId ?? string.Empty);
 
         await clientHub.SendAsync(message1);
@@ -530,8 +530,8 @@
             room.SendMsg(UserId ?? string.Empty);
             _newMessage = string.Empty;
             StateHasChanged();
-            //string response = await SendGptChat(message);
-            string response = await semanticKernelLogic.Run(message);
+
+            string response = await agentFrameworkLogic.Run(message);
             chat = new();
             chat.Name = _username ?? string.Empty;
             chat.Message = $"[ほのか] : {_username}さん{response}";
@@ -545,7 +545,6 @@
             _newMessage = string.Empty;
 
             StateHasChanged();
-
         }
 
     }
@@ -580,7 +579,7 @@
             chat.UserId = UserId ?? string.Empty;
             Osaifu osaifu1 = new();
             DbContext.Chats.Add(chat);
-            semanticKernelLogic.NonGenerateMessage(message);
+            agentFrameworkLogic.NonGenerateMessage(message);
             var osaifu = DbContext.Osaifus.Find(_username);
             if (osaifu != null)
             {

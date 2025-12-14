@@ -6,7 +6,7 @@ namespace BlazorServerChat2.Data.Plugin;
 [Description("Museに関する情報を提供します。")]
 public class Muse
 {
-    [KernelFunction, Description("Museとは何か")]
+    [Description("Museとは何か")]
     public string Get1_1()
     {
         return """
@@ -40,7 +40,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("Museのインストールとアンインストール")]
+    [Description("Museのインストールとアンインストール")]
     public string Get1_2()
     {
         return """
@@ -105,7 +105,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("Museデータの基本的な作成手順")]
+    [Description("Museデータの基本的な作成手順")]
     public string Get1_3()
     {
         return """
@@ -163,7 +163,7 @@ public class Muse
 			
 			""";
     }
-    [KernelFunction, Description("Museデータの高度な機能を活用するための準備")]
+    [Description("Museデータの高度な機能を活用するための準備")]
     public string Get1_4()
     {
         return """
@@ -252,7 +252,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("Museでまずはドレミを鳴らしてみよう")]
+    [Description("Museでまずはドレミを鳴らしてみよう")]
     public string Get2_1()
     {
         return """
@@ -315,7 +315,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("Museでオクターブの指定はどうやるのかな")]
+    [Description("Museでオクターブの指定はどうやるのかな")]
     public string Get2_2()
     {
         return """
@@ -348,7 +348,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("半音の指定はどうやるのかな")]
+    [Description("半音の指定はどうやるのかな")]
     public string Get2_3()
     {
         return """
@@ -385,7 +385,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("調性の指定方法")]
+    [Description("調性の指定方法")]
     public string Get2_4()
     {
         return """
@@ -424,7 +424,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("音の長さを指定しよう")]
+    [Description("音の長さを指定しよう")]
     public string Get2_5()
     {
         return """
@@ -461,7 +461,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("付点の表現")]
+    [Description("付点の表現")]
     public string Get2_6()
     {
         return """
@@ -474,7 +474,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("タイの表現")]
+    [Description("タイの表現")]
     public string Get2_7()
     {
         return """
@@ -529,7 +529,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("コメントを使って可読性を高める")]
+    [Description("コメントを使って可読性を高める")]
     public string Get2_8()
     {
         return """
@@ -650,7 +650,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("スタッカートの指定方法")]
+    [Description("スタッカートの指定方法")]
     public string Get2_9()
     {
         return """
@@ -703,7 +703,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("省略音長について")]
+    [Description("省略音長について")]
     public string Get2_10()
     {
         return """
@@ -756,7 +756,7 @@ public class Muse
 			""";
     }
 
-    [KernelFunction, Description("連符の表現")]
+    [Description("連符の表現")]
     public string Get2_11()
     {
         return """
@@ -813,7 +813,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("テンポを変えてみる")]
+    [Description("テンポを変えてみる")]
     public string Get2_12()
     {
         return """
@@ -833,7 +833,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("装飾音の付け方")]
+    [Description("装飾音の付け方")]
     public string Get2_13()
     {
         return """
@@ -906,7 +906,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("音の強さを指定しよう")]
+    [Description("音の強さを指定しよう")]
     public string Get2_14()
     {
         return """
@@ -930,7 +930,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("音部記号について")]
+    [Description("音部記号について")]
     public string Get2_15()
     {
         return """
@@ -959,7 +959,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("和音とタイミングコントロール")]
+    [Description("和音とタイミングコントロール")]
     public string Get2_16()
     {
         return """
@@ -1027,7 +1027,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("コードによる伴奏")]
+    [Description("コードによる伴奏")]
     public string Get2_17()
     {
         return """
@@ -1152,7 +1152,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("音符の連結")]
+    [Description("音符の連結")]
     public string Get2_18()
     {
         return """
@@ -1205,7 +1205,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("再現表記の活用")]
+    [Description("再現表記の活用")]
     public string Get2_19()
     {
         return """
@@ -1247,7 +1247,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("アクセントを付ける")]
+    [Description("アクセントを付ける")]
     public string Get2_20()
     {
         return """
@@ -1284,7 +1284,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("グルーヴ感を与える")]
+    [Description("グルーヴ感を与える")]
     public string Get2_21()
     {
         return """
@@ -1369,7 +1369,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("アルペジオの記述方法")]
+    [Description("アルペジオの記述方法")]
     public string Get2_22()
     {
         return """
@@ -1424,7 +1424,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("最小分解能と微分音長")]
+    [Description("最小分解能と微分音長")]
     public string Get2_23()
     {
         return """
@@ -1457,7 +1457,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("エコーをかける")]
+    [Description("エコーをかける")]
     public string Get2_24()
     {
         return """
@@ -1481,7 +1481,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("メンバーとフィンガーの概念")]
+    [Description("メンバーとフィンガーの概念")]
     public string Get3_1()
     {
         return """
@@ -1600,7 +1600,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("演奏タイミングを強制的に合せる")]
+    [Description("演奏タイミングを強制的に合せる")]
     public string Get3_2()
     {
         return """
@@ -1677,7 +1677,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("繰返し記述と複写機構")]
+    [Description("繰返し記述と複写機構")]
     public string Get3_3()
     {
         return """
@@ -1730,7 +1730,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("ドラムの演奏方法")]
+    [Description("ドラムの演奏方法")]
     public string Get3_4()
     {
         return """
@@ -1771,7 +1771,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("フィンガー単位に指定する値")]
+    [Description("フィンガー単位に指定する値")]
     public string Get3_5()
     {
         return """
@@ -1806,7 +1806,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("メンバー単位に指定する値")]
+    [Description("メンバー単位に指定する値")]
     public string Get3_6()
     {
         return """
@@ -1894,7 +1894,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("音色の指定")]
+    [Description("音色の指定")]
     public string Get3_7()
     {
         return """
@@ -1961,7 +1961,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("音量の指定(クレッシェンドとデクレッシェンド)")]
+    [Description("音量の指定(クレッシェンドとデクレッシェンド)")]
     public string Get3_8()
     {
         return """
@@ -2020,7 +2020,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("ステレオ効果の利用")]
+    [Description("ステレオ効果の利用")]
     public string Get3_9()
     {
         return """
@@ -2083,7 +2083,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("移調の仕方")]
+    [Description("移調の仕方")]
     public string Get3_10()
     {
         return """
@@ -2132,7 +2132,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("楽器の音色をアレンジする")]
+    [Description("楽器の音色をアレンジする")]
     public string Get3_11()
     {
         return """
@@ -2192,7 +2192,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("なめらかなグリッサンド")]
+    [Description("なめらかなグリッサンド")]
     public string Get3_12()
     {
         return """
@@ -2237,7 +2237,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("ダンパーペダルの操作")]
+    [Description("ダンパーペダルの操作")]
     public string Get3_13()
     {
         return """
@@ -2291,7 +2291,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("全体に影響を及す値")]
+    [Description("全体に影響を及す値")]
     public string Get3_14()
     {
         return """
@@ -2337,7 +2337,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("リタルダンドとアッチェレランド(遅延効果)")]
+    [Description("リタルダンドとアッチェレランド(遅延効果)")]
     public string Get3_15()
     {
         return """
@@ -2384,7 +2384,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("ノンレガートな奏法")]
+    [Description("ノンレガートな奏法")]
     public string Get3_16()
     {
         return """
@@ -2430,7 +2430,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("アーティキュレーションの指定")]
+    [Description("アーティキュレーションの指定")]
     public string Get3_17()
     {
         return """
@@ -2524,7 +2524,7 @@ public class Muse
 			""";
     }
 
-    [KernelFunction, Description("強弱と音量の関係")]
+    [Description("強弱と音量の関係")]
     public string Get3_18()
     {
         return """
@@ -2611,7 +2611,7 @@ public class Muse
 			""";
     }
 
-    [KernelFunction, Description("発音中の音量を変化させる")]
+    [Description("発音中の音量を変化させる")]
     public string Get3_19()
     {
         return """
@@ -2679,7 +2679,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("コードの転回形")]
+    [Description("コードの転回形")]
     public string Get3_20()
     {
         return """
@@ -2740,7 +2740,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("コマンドによる制御")]
+    [Description("コマンドによる制御")]
     public string Get4_1()
     {
         return """
@@ -2789,7 +2789,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("カラオケとして利用する(文字列の表示)TEXTコマンド")]
+    [Description("カラオケとして利用する(文字列の表示)TEXTコマンド")]
     public string Get4_2()
     {
         return """
@@ -2834,7 +2834,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("位置決め可能な文字列表示MARKコマンド")]
+    [Description("位置決め可能な文字列表示MARKコマンド")]
     public string Get4_3()
     {
         return """
@@ -2858,7 +2858,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("一時停止と文字列表示STOPコマンド")]
+    [Description("一時停止と文字列表示STOPコマンド")]
     public string Get4_4()
     {
         return """
@@ -2890,7 +2890,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("表示文字のフォント指定FONTコマンド")]
+    [Description("表示文字のフォント指定FONTコマンド")]
     public string Get4_5()
     {
         return """
@@ -2929,7 +2929,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("音声ファイルの再生WAVEコマンド")]
+    [Description("音声ファイルの再生WAVEコマンド")]
     public string Get4_6()
     {
         return """
@@ -2994,7 +2994,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("マクロを使って楽曲を組み立てる")]
+    [Description("マクロを使って楽曲を組み立てる")]
     public string Get4_7()
     {
         return """
@@ -3121,7 +3121,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("演奏パターンの部品化")]
+    [Description("演奏パターンの部品化")]
     public string Get4_8()
     {
         return """
@@ -3257,7 +3257,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("スコア譜とパート譜の混在")]
+    [Description("スコア譜とパート譜の混在")]
     public string Get4_9()
     {
         return """
@@ -3317,7 +3317,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("メンバー色をカスタマイズする")]
+    [Description("メンバー色をカスタマイズする")]
     public string Get4_10()
     {
         return """
@@ -3351,7 +3351,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("ドラマーの転向について")]
+    [Description("ドラマーの転向について")]
     public string Get4_11()
     {
         return """
@@ -3387,7 +3387,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("ドラムロールの響きを向上させる")]
+    [Description("ドラムロールの響きを向上させる")]
     public string Get4_12()
     {
         return """
@@ -3426,7 +3426,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("演奏会場を設定する")]
+    [Description("演奏会場を設定する")]
     public string Get4_13()
     {
         return """
@@ -3496,7 +3496,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("移調楽器をフィンガー毎に割り当てる")]
+    [Description("移調楽器をフィンガー毎に割り当てる")]
     public string Get4_14()
     {
         return """
@@ -3539,7 +3539,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("フィンガー属性を一気に指定する")]
+    [Description("フィンガー属性を一気に指定する")]
     public string Get4_15()
     {
         return """
@@ -3609,7 +3609,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("繰返しパターンの混在")]
+    [Description("繰返しパターンの混在")]
     public string Get4_16()
     {
         return """
@@ -3656,7 +3656,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("音色バリエーションを指定する")]
+    [Description("音色バリエーションを指定する")]
     public string Get4_17()
     {
         return """
@@ -3739,7 +3739,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("波形を加工する")]
+    [Description("波形を加工する")]
     public string Get4_18()
     {
         return """
@@ -3797,7 +3797,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("ペダル踏み替えタイミングの調整")]
+    [Description("ペダル踏み替えタイミングの調整")]
     public string Get4_19()
     {
         return """
@@ -3860,7 +3860,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("表示済みテキストに追記する")]
+    [Description("表示済みテキストに追記する")]
     public string Get4_20()
     {
         return """
@@ -3989,7 +3989,7 @@ public class Muse
 			""";
     }
 
-    [KernelFunction, Description("コメントスイッチの活用")]
+    [Description("コメントスイッチの活用")]
     public string Get4_21()
     {
         return """
@@ -4089,7 +4089,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("コントロールの指定")]
+    [Description("コントロールの指定")]
     public string Get4_22()
     {
         return """
@@ -4166,7 +4166,7 @@ public class Muse
 			""";
     }
 
-    [KernelFunction, Description("エクスクルーシブの指定")]
+    [Description("エクスクルーシブの指定")]
     public string Get4_23()
     {
         return """
@@ -4248,7 +4248,7 @@ public class Muse
 """;
     }
 
-    [KernelFunction, Description("MP3エクスポートのオプション")]
+    [Description("MP3エクスポートのオプション")]
     public string Get4_24()
     {
         return """
@@ -4291,7 +4291,7 @@ public class Muse
 			""";
     }
 
-    [KernelFunction, Description("楽譜の体裁を整える")]
+    [Description("楽譜の体裁を整える")]
     public string Get4_25()
     {
         return """

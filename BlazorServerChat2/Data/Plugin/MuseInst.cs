@@ -7,7 +7,7 @@ namespace BlazorServerChat2.Data.Plugin
 
     public class MuseInst
     {
-        [KernelFunction, Description("Museの文法の概要")]
+        [Description("Museの文法の概要")]
         public string Get5_25()
         {
             return """
@@ -50,7 +50,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)音符記述")]
+        [Description("(文法リファレンス)音符記述")]
         public string Get5_26()
         {
             return """
@@ -140,7 +140,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)連符")]
+        [Description("(文法リファレンス)連符")]
         public string Get5_27()
         {
             return """
@@ -166,7 +166,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)和音")]
+        [Description("(文法リファレンス)和音")]
         public string Get5_28()
         {
             return """
@@ -201,7 +201,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)コード")]
+        [Description("(文法リファレンス)コード")]
         public string Get5_29()
         {
             return """
@@ -293,7 +293,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)再現 繰り返し ,")]
+        [Description("(文法リファレンス)再現 繰り返し ,")]
         public string Get5_30()
         {
             return """
@@ -322,7 +322,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)連結 &")]
+        [Description("(文法リファレンス)連結 &")]
         public string Get5_31()
         {
             return """
@@ -343,7 +343,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)フィンガー宣言 #")]
+        [Description("(文法リファレンス)フィンガー宣言 #")]
         public string Get5_32()
         {
             return """
@@ -365,7 +365,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)音名タイプ x")]
+        [Description("(文法リファレンス)音名タイプ x")]
         public string Get5_33()
         {
             return """
@@ -391,7 +391,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)絶対オクターブ o")]
+        [Description("(文法リファレンス)絶対オクターブ o")]
         public string Get5_34()
         {
             return """
@@ -408,7 +408,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)相対オクターブ < or >")]
+        [Description("(文法リファレンス)相対オクターブ < or >")]
         public string Get5_35()
         {
             return """
@@ -423,7 +423,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)強弱 v")]
+        [Description("(文法リファレンス)強弱 v")]
         public string Get5_36()
         {
             return """
@@ -449,7 +449,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)アクセント w")]
+        [Description("(文法リファレンス)アクセント w")]
         public string Get5_37()
         {
             return """
@@ -469,7 +469,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)音部記号 ?")]
+        [Description("(文法リファレンス)音部記号 ?")]
         public string Get5_38()
         {
             return """
@@ -494,7 +494,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)出音グルーヴ p")]
+        [Description("(文法リファレンス)出音グルーヴ p")]
         public string Get5_39()
         {
             return """
@@ -516,7 +516,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)止音グルーヴ q")]
+        [Description("(文法リファレンス)止音グルーヴ q")]
         public string Get5_40()
         {
             return """
@@ -540,7 +540,7 @@ namespace BlazorServerChat2.Data.Plugin
 """;
         }
 
-        [KernelFunction, Description("(文法リファレンス)移調楽器 y")]
+        [Description("(文法リファレンス)移調楽器 y")]
         public string Get5_41()
         {
             return """
