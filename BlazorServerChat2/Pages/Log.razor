@@ -23,10 +23,10 @@
     </Columns>
 </RadzenDataGrid>
 *@
-<FluentDataGrid Items="@chats.AsQueryable()" GridTemplateColumns="0.5fr 0.5fr 2fr">
+<FluentDataGrid Items="@chats.AsQueryable()" GridTemplateColumns="0.5fr 0.5fr 2fr" MultiLine="true">
     <PropertyColumn Property="@(p => p.Time)" Format="yyyy/MM/dd HH:mm:ss" Title="投稿時刻" />
     <PropertyColumn Property="@(p => p.Name)" Title="名前" />
-<TemplateColumn Title="投稿内容" Class="multiline-text">
+<TemplateColumn Title="投稿内容">
 <ChildContent>
         @if (context.Message.StartsWith("[ほのか]"))
         {

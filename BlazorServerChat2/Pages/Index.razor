@@ -22,6 +22,7 @@
 @inject AgentFrameworkLogic agentFrameworkLogic
 @inject ScreenModePlugin screenModePlugin
 @inject IKeyCodeService keyCodeService
+@inject UserChatSettingCache userChatSettingCache
 @implements IAsyncDisposable
 
 <PageTitle>あびや</PageTitle>
@@ -65,7 +66,7 @@
                 @foreach (var Item in room.roomNames)
                 {
                     <span>
-                        @DbContext.Users.Find(Item) さん　
+                        @(userChatSettingCache.GetUserName(Item) ?? Item) さん　
                     </span>
                 }
             }
@@ -192,13 +193,12 @@
                             <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-4);border-bottom-right-radius:10px;border-top-right-radius:10px;">
                                 <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
                                     <div>
-                                        @if (@DbContext.UserChatSetting.Find(item.UserId) is not null && @DbContext.UserChatSetting.Find(item.UserId)!.IconNumber != 0)
-                                        {
-                                            <img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x  => x.IconNumber == (DbContext.UserChatSetting.Find(@item.UserId)!).IconNumber).Select(x => x.Icon).First()!)" />
+                                        @{
+                                            var myIconBase64 = userChatSettingCache.GetUserIconBase64(item.UserId);
                                         }
-                                        else
+                                        @if (!string.IsNullOrEmpty(myIconBase64))
                                         {
-
+                                            <img src="data:image/png;base64,@myIconBase64" />
                                         }
                                     </div>
                                 </FluentStack>
@@ -244,13 +244,12 @@
                             <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-2);border-bottom-left-radius:10px;border-top-left-radius:10px;">
                                 <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
                                     <div>
-                                        @if (@DbContext.UserChatSetting.Find(item.UserId) is not null && @DbContext.UserChatSetting.Find(item.UserId)!.IconNumber != 0)
-                                        {
-                                            <img src="data:image/png;base64,@Convert.ToBase64String(@DbContext.IconMaster.Where(x  => x.IconNumber == (DbContext.UserChatSetting.Find(@item.UserId)!).IconNumber).Select(x => x.Icon).First()!)" />
+                                        @{
+                                            var otherIconBase64 = userChatSettingCache.GetUserIconBase64(item.UserId);
                                         }
-                                        else
+                                        @if (!string.IsNullOrEmpty(otherIconBase64))
                                         {
-
+                                            <img src="data:image/png;base64,@otherIconBase64" />
                                         }
                                     </div>
                                 </FluentStack>
@@ -260,8 +259,7 @@
 
                                     <FluentLabel Typo="Typography.Body">
                                         @item.Username :
-                                        @*<div style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">*@@item.Body
-                                        @*</div>*@
+                                        @item.Body
                                     </FluentLabel>
                                     <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
                                 </FluentStack>
@@ -328,6 +326,9 @@
     /// <returns></returns>
     protected override async Task OnInitializedAsync()
     {
+        // キャッシュの初期化（初回のみDBアクセス）
+        await userChatSettingCache.InitializeAsync();
+        
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         user = authState!.User.Identity?.Name!;
         UserId = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Select(x => x.Value).FirstOrDefault()!;
@@ -352,6 +353,10 @@
             clientHub._messages.Clear();
 
             var context = DbContext.Chats.OrderByDescending(x => x.Time).Take(100);
+
+            // 過去ログのユーザーIDを収集してユーザー名を一括ロード
+            var userIds = context.Select(c => c.UserId).Distinct().ToList();
+            await userChatSettingCache.LoadUserNamesAsync(userIds);
 
             foreach (Chat chat in context)
             {

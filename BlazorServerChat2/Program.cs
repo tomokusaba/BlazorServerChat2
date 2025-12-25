@@ -117,25 +117,26 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<ClientHub>();
 builder.Services.AddSingleton<Room>();
 builder.Services.AddSingleton<HttpClient>();
+builder.Services.AddSingleton<UserChatSettingCache>();
 //builder.Services.AddSingleton<SemanticKernelLogic>();
-            string baseUrl = builder.Configuration.GetValue<string>("Settings:BaseUrl") ?? string.Empty;
-            string key = builder.Configuration.GetValue<string>("Settings:OpenAIKey") ?? string.Empty;
-            string deploymentName = builder.Configuration.GetValue<string>("Settings:DeploymentName") ?? string.Empty;
-            var client = new AzureOpenAIClient(
-                new Uri(baseUrl),
-                new System.ClientModel.ApiKeyCredential(key))
-                .GetChatClient(deploymentName)
-                .AsIChatClient()
-                .AsBuilder()
-                .UseOpenTelemetry(sourceName: openTelemetrySourceName, configure: (cfg) => cfg.EnableSensitiveData = builder.Environment.IsDevelopment())
-                .Build();
+string baseUrl = builder.Configuration.GetValue<string>("Settings:BaseUrl") ?? string.Empty;
+string key = builder.Configuration.GetValue<string>("Settings:OpenAIKey") ?? string.Empty;
+string deploymentName = builder.Configuration.GetValue<string>("Settings:DeploymentName") ?? string.Empty;
+var client = new AzureOpenAIClient(
+    new Uri(baseUrl),
+    new System.ClientModel.ApiKeyCredential(key))
+    .GetChatClient(deploymentName)
+    .AsIChatClient()
+    .AsBuilder()
+    .UseOpenTelemetry(sourceName: openTelemetrySourceName, configure: (cfg) => cfg.EnableSensitiveData = true)
+    .Build();
 builder.Services.AddSingleton<IChatClient>(client);
 builder.Services.AddSingleton<AgentFrameworkLogic>();
 builder.Services.AddScoped<ScreenModePlugin>();
 builder.Services.AddScoped<WeatherPlugin>();
 builder.Services.AddHttpLogging(c =>
 {
-    
+
 });
 //builder.Logging.ClearProviders();
 var app = builder.Build();

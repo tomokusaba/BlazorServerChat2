@@ -1,0 +1,12 @@
+/* FluentDataGrid MultiLineモード用スタイル */
+::deep td {
+    padding: 12px;
+    line-height: 1.6;
+    vertical-align: top;
+}
+
+/* 投稿内容の折り返しと表示調整 */
+::deep td:last-child {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
