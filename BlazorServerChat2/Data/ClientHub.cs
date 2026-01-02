@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.EntityFrameworkCore;
 using static BlazorServerChat2.Pages.Index;
 
 namespace BlazorServerChat2.Data
@@ -20,7 +21,7 @@ namespace BlazorServerChat2.Data
         public List<Message> _messages = new List<Message>();
         private AuthenticationStateProvider _authenticationStateProvider;
         private NavigationManager _navigationManager;
-        private ApplicationDbContext _applicationDbContext;
+        private IDbContextFactory<ApplicationDbContext> _dbContextFactory;
         private string? _username;
         private string? UserId;
         private Room _room;
@@ -32,13 +33,13 @@ namespace BlazorServerChat2.Data
         /// </summary>
         /// <param name="navigation"></param>
         /// <param name="authentication"></param>
-        /// <param name="DbContect">EF</param>
+        /// <param name="dbContextFactory">EF DbContextFactory</param>
         /// <param name="room">チャットルーム在室人数管理クラス</param>
-        public ClientHub(NavigationManager navigation, AuthenticationStateProvider authentication, ApplicationDbContext DbContect, Room room)
+        public ClientHub(NavigationManager navigation, AuthenticationStateProvider authentication, IDbContextFactory<ApplicationDbContext> dbContextFactory, Room room)
         {
             _authenticationStateProvider = authentication;
             _navigationManager = navigation;
-            _applicationDbContext = DbContect;
+            _dbContextFactory = dbContextFactory;
             _room = room;
         }
 
@@ -79,8 +80,10 @@ namespace BlazorServerChat2.Data
                 chat.Message = message.Body;
                 chat.Name = _username ?? string.Empty;
                 chat.UserId = UserId ?? string.Empty;
-                _applicationDbContext.Chats.Add(chat);
-                await _applicationDbContext.SaveChangesAsync();
+                
+                await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+                dbContext.Chats.Add(chat);
+                await dbContext.SaveChangesAsync();
 
                 await SendAsync(message);
 

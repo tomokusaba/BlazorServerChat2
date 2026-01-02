@@ -24,6 +24,7 @@
 <HeadContent>
     <link rel="stylesheet" href="@Assets["_content/Microsoft.FluentUI.AspNetCore.Components/css/reboot.css"]" />
 </HeadContent>
+<FluentDesignSystemProvider @ref="_designSystemProvider" AccentBaseColor="#185ABD" BaseLayerLuminance="@_baseLayerLuminance" Style="height:100%">
 <FluentLayout Style="height: 100%">
 
     <FluentHeader>
@@ -50,9 +51,11 @@
     <FluentMessageBarProvider />
     <FluentKeyCodeProvider />
 </FluentLayout>
-
+</FluentDesignSystemProvider>
 
 @code {
+    private FluentDesignSystemProvider? _designSystemProvider;
+    private float _baseLayerLuminance = 0.98f;
     private bool IsDarkMode { get; set; } = false;
 
     public static FluentSwitch? Switch { get; set; }
@@ -61,13 +64,14 @@
     {
         if (!IsDarkMode)
         {
-            await BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, 0.15f);
+            _baseLayerLuminance = 0.15f;
         }
         else
         {
-            await BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, 0.98f);
+            _baseLayerLuminance = 0.98f;
         }
         StateHasChanged();
+        await Task.CompletedTask;
     }
 
     public static bool DarkMode = false;
@@ -81,36 +85,20 @@
 
             if (value)
             {
-                //BaseLayerLuminance.WithDefault(StandardLuminance.DarkMode.GetLuminanceValue());
-                BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, StandardLuminance.DarkMode.GetLuminanceValue());
+                _baseLayerLuminance = StandardLuminance.DarkMode.GetLuminanceValue();
             }
             else
             {
-                //BaseLayerLuminance.WithDefault(StandardLuminance.LightMode.GetLuminanceValue());
-                BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, StandardLuminance.LightMode.GetLuminanceValue());
+                _baseLayerLuminance = StandardLuminance.LightMode.GetLuminanceValue();
             }
             StateHasChanged();
         }
     }
 
-
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            IsDarkMode = false;
-            if (IsDarkMode)
-            {
-                await BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, 0.15f);
-            }
-            else
-            {
-                await BaseLayerLuminance.SetValueFor(App.DesignSystemProvider!.Element, 0.98f);
-            }
-            StateHasChanged();
-
-
-        }
+        // FluentDesignSystemProviderのBaseLayerLuminanceプロパティで制御するため、
+        // OnAfterRenderAsyncでのJS Interop呼び出しは不要
+        return Task.CompletedTask;
     }
 }

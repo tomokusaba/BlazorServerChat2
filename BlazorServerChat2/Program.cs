@@ -1,6 +1,7 @@
 using Azure.AI.OpenAI;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using BlazorApp31.Plugin;
+using BlazorServerChat2;
 using BlazorServerChat2.Areas.Identity;
 using BlazorServerChat2.Data;
 using BlazorServerChat2.Hubs;
@@ -24,6 +25,8 @@ GptUrl = builder.Configuration.GetValue<string>("Settings:OpenAIEndPoint") ?? st
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString), ServiceLifetime.Scoped);
 
 var RedisConnString = builder.Configuration.GetConnectionString("Redis");
 //builder.Services.AddDistributedRedisCache(options =>
@@ -105,7 +108,9 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 
 });
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpClient();
 builder.Services.AddFluentUIComponents(options =>
 {
@@ -207,7 +212,6 @@ else
 
     app.UseHsts();
 }
-app.MapBlazorHub();
 app.MapHub<BlazorChatHub>(BlazorChatHub.HubUrl);
 app.UseHttpsRedirection();
 
@@ -219,10 +223,12 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
 
 app.MapControllers();
-//app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
+app.MapRazorPages();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.Run();
 
