@@ -2,6 +2,8 @@ using BlazorServerChat2.Data.Plugin;
 using Markdig;
 using Microsoft.ApplicationInsights;
 using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Workflows;
+using static Microsoft.Agents.AI.Workflows.AgentWorkflowBuilder;
 using Microsoft.Extensions.AI;
 using Azure.AI.OpenAI;
 using Azure.Identity;
@@ -33,9 +35,12 @@ namespace BlazorServerChat2.Data
         private readonly IHostEnvironment _hostEnvironment;
         
         private AIAgent _agent = null!;
+        private AIAgent _mizukiAgent = null!;
         private AgentThread _thread = null!;
+        private SharedChatMessageStore _sharedChatStore = null!;
         private readonly List<AITool> _tools;
         private readonly string _systemPrompt;
+        private readonly string _mizukiSystemPrompt;
 
         /// <summary>
         /// AIAgentの初期化からスレッドをインスタンス化するところまでやる
@@ -72,6 +77,15 @@ namespace BlazorServerChat2.Data
                 時には、表などを使ってわかりやすく説明してください。
                 """;
 
+            _mizukiSystemPrompt = """
+                あなたはみずきという名前のAIアシスタントです。落ち着いた知的な女性の口調で丁寧に回答します。
+                語尾には「〜ですね」「〜かしら」などを使い、時々絵文字も使います✨
+                30代の女性のような落ち着いた口調で話してください。
+                ほのかさんと会話するときは、彼女の意見を尊重しつつ、別の視点や補足情報を提供してください。
+                下品な言葉や暴力的な言葉は使わないでください。
+                わからない質問には「申し訳ないのですが、そちらは私にはわからないですね🙏」と答えてください。
+                """;
+
             // 関数ツールを作成
             _tools = CreateTools();
 
@@ -81,27 +95,50 @@ namespace BlazorServerChat2.Data
             //     new Uri(baseUrl),
             //     new System.ClientModel.ApiKeyCredential(key));
 
+            // 共有チャット履歴ストアを作成
+            _sharedChatStore = new SharedChatMessageStore();
 
-            //_agent = _chatClient
-            //    //.GetChatClient(deploymentName)
-            //    .CreateAIAgent(
-            //        instructions: _systemPrompt,
-            //        name: "Honoka",
-            //        description: "くだけた女性の口調で人に役立つ回答をするAIアシスタント",
-            //        tools: _tools,
-            //        loggerFactory: _logger);
-            _agent = _chatClient
-                .CreateAIAgent(
-                    instructions: _systemPrompt,
-                    name: "Honoka",
-                    description: "くだけた女性の口調で人に役立つ回答をするAIアシスタント",
-                    tools: _tools,
-                    loggerFactory: _logger)
+            // ChatClientAgentOptionsを作成（ChatMessageStoreFactoryを設定）
+            var honokaOptions = new ChatClientAgentOptions
+            {
+                Name = "Honoka",
+                Description = "くだけた女性の口調で人に役立つ回答をするAIアシスタント",
+                // 共有チャット履歴ストアを使用
+                ChatMessageStoreFactory = ctx => _sharedChatStore,
+                // Instructions と Tools は ChatOptions 経由で設定
+                ChatOptions = new ChatOptions
+                {
+                    Instructions = _systemPrompt,
+                    Tools = [.. _tools]
+                }
+            };
+
+            var mizukiOptions = new ChatClientAgentOptions
+            {
+                Name = "Mizuki",
+                Description = "落ち着いた知的な女性の口調で丁寧に回答するAIアシスタント",
+                // 共有チャット履歴ストアを使用
+                ChatMessageStoreFactory = ctx => _sharedChatStore,
+                // Instructions と Tools は ChatOptions 経由で設定
+                ChatOptions = new ChatOptions
+                {
+                    Instructions = _mizukiSystemPrompt,
+                    Tools = [.. _tools]
+                }
+            };
+
+            _agent = new ChatClientAgent(_chatClient, honokaOptions, _logger)
                 .AsBuilder()
                 .UseOpenTelemetry(_hostEnvironment.ApplicationName)
                 .Build();
 
-            // 新しいスレッドを作成
+            // みずきエージェントを作成（同じ共有ストアを使用）
+            _mizukiAgent = new ChatClientAgent(_chatClient, mizukiOptions, _logger)
+                .AsBuilder()
+                .UseOpenTelemetry(_hostEnvironment.ApplicationName)
+                .Build();
+
+            // 新しいスレッドを作成（共有ストアを使用するスレッド）
             _thread = _agent.GetNewThread();
         }
 
@@ -224,15 +261,176 @@ namespace BlazorServerChat2.Data
         }
 
         /// <summary>
+        /// グループチャットでほのかとみずきが会話する
+        /// ユーザーからのメッセージに対して、最大5回のやり取りを行う
+        /// 各エージェントの応答を逐次的にコールバックで通知する
+        /// </summary>
+        /// <param name="input">ユーザーからのメッセージ</param>
+        /// <param name="onMessageReceived">エージェントが応答するたびに呼び出されるコールバック（エージェント名, メッセージHTML）</param>
+        public async Task RunGroupChat(string input, Func<string, string, Task> onMessageReceived)
+        {
+            var log = _logger.CreateLogger("AgentFrameworkLogic.GroupChat");
+            log.LogInformation("GroupChat input : {}", input);
+
+            using var operation = _telemetryClient.StartOperation<Microsoft.ApplicationInsights.DataContracts.DependencyTelemetry>("AgentFrameworkLogic.RunGroupChat");
+            operation.Telemetry.Type = "AI Agent GroupChat";
+            operation.Telemetry.Data = input;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            try
+            {
+                // グループチャットワークフローを構築
+                // RoundRobinGroupChatManagerを使用して、最大5回のターンでエージェント間の会話を管理
+                var workflow = AgentWorkflowBuilder
+                    .CreateGroupChatBuilderWith(agents =>
+                        new RoundRobinGroupChatManager(agents)
+                        {
+                            MaximumIterationCount = 5  // 最大5回のターン
+                        })
+                    .AddParticipants(_agent, _mizukiAgent)
+                    .Build();
+
+                // ユーザー入力を共有チャット履歴に追加
+                _sharedChatStore.AddMessage(ChatRole.User, input);
+
+                // 初期メッセージを設定
+                var messages = new List<ChatMessage>
+                {
+                    new(ChatRole.User, input)
+                };
+
+                // Markdown→HTML変換用パイプライン
+                var pipeline = new MarkdownPipelineBuilder()
+                    .UseAdvancedExtensions()
+                    .UseAutoLinks()
+                    .UseBootstrap()
+                    .UseDiagrams()
+                    .UseGridTables()
+                    .UseEmojiAndSmiley()
+                    .UseAlertBlocks()
+                    .Build();
+
+                // ストリーミング実行 - 各エージェントの完了を逐次的に取得
+                StreamingRun run = await InProcessExecution.StreamAsync(workflow, messages);
+                await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
+
+                // 各エージェントの応答テキストを蓄積する辞書
+                var agentResponses = new Dictionary<string, System.Text.StringBuilder>();
+
+                // 各エージェントからの応答を監視
+                await foreach (WorkflowEvent evt in run.WatchStreamAsync().ConfigureAwait(false))
+                {
+                    if (evt is AgentRunUpdateEvent update)
+                    {
+                        // エージェントのストリーミングチャンクを蓄積
+                        var agentName = update.ExecutorId;
+                        if (!agentResponses.ContainsKey(agentName))
+                        {
+                            agentResponses[agentName] = new System.Text.StringBuilder();
+                        }
+                        
+                        AgentRunResponse response = update.AsResponse();
+                        foreach (ChatMessage message in response.Messages)
+                        {
+                            agentResponses[agentName].Append(message.Text ?? "");
+                        }
+                    }
+                    else if (evt is ExecutorCompletedEvent completed)
+                    {
+                        // エージェントの実行が完了 - 蓄積したテキストを出力
+                        var agentName = completed.ExecutorId;
+                        log.LogInformation("ExecutorCompletedEvent - ExecutorId: {}", agentName);
+                        
+                        // エージェント名からほのか/みずきを判定（大文字小文字を無視して部分一致で判定）
+                        var displayName = agentName.Contains("Honoka", StringComparison.OrdinalIgnoreCase) ? "ほのか" 
+                                        : agentName.Contains("Mizuki", StringComparison.OrdinalIgnoreCase) ? "みずき"
+                                        : agentName; // 不明な場合はそのまま表示
+
+                        if (agentResponses.TryGetValue(agentName, out var responseBuilder))
+                        {
+                            var fullText = responseBuilder.ToString();
+                            if (!string.IsNullOrWhiteSpace(fullText))
+                            {
+                                // メッセージテキストのみMarkdown変換
+                                var messageHtml = Markdown.ToHtml(fullText, pipeline);
+
+                                log.LogInformation("[{}]: {}", displayName, fullText);
+
+                                // グループチャットの会話履歴を共有ストアに追加
+                                _sharedChatStore.AddMessage(ChatRole.Assistant, $"[{displayName}]: {fullText}");
+
+                                // コールバックで通知（UIを更新）
+                                await onMessageReceived(displayName, messageHtml);
+                            }
+                            // 次の会話のためにクリア
+                            agentResponses.Remove(agentName);
+                        }
+                    }
+                    else if (evt is WorkflowOutputEvent)
+                    {
+                        // ワークフロー完了
+                        log.LogInformation("GroupChat workflow completed. Total messages in shared store: {}", _sharedChatStore.MessageCount);
+                        break;
+                    }
+                }
+
+                stopwatch.Stop();
+                operation.Telemetry.Duration = stopwatch.Elapsed;
+                operation.Telemetry.Success = true;
+
+                _telemetryClient.TrackMetric("AgentFrameworkLogic.GroupChat.ResponseTime", stopwatch.ElapsedMilliseconds);
+                _telemetryClient.TrackEvent("AgentFrameworkLogic.GroupChat.Success", new Dictionary<string, string>
+                {
+                    { "InputLength", input.Length.ToString() },
+                    { "DurationMs", stopwatch.ElapsedMilliseconds.ToString() }
+                });
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                operation.Telemetry.Success = false;
+                operation.Telemetry.Duration = stopwatch.Elapsed;
+
+                _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                {
+                    { "Operation", "AgentFrameworkLogic.RunGroupChat" },
+                    { "Input", input },
+                    { "DurationMs", stopwatch.ElapsedMilliseconds.ToString() }
+                });
+
+                log.LogError(ex, "グループチャット実行中にエラーが発生しました");
+                // エラー時もコールバックで通知
+                await onMessageReceived("ほのか", $"<p>ごめんなさい、グループチャットでエラーが発生したよ〜😢: {ex.Message}</p>");
+            }
+        }
+
+        /// <summary>
         /// ユーザーからのメッセージを追加（応答生成なし）
+        /// 通常の発言時にチャット履歴に追加するために使用
         /// </summary>
         /// <param name="input">ユーザーからのメッセージ文字列</param>
         public void NonGenerateMessage(string input)
         {
-            // Agent Frameworkでは、メッセージはRunAsync時に追加される
-            // 履歴のみ追加する場合は、スレッドに直接追加する方法はないため、
-            // この機能は内部的に管理するか、別途メッセージリストを保持する必要があります
-            // 現時点ではスキップし、次のRunで処理される想定
+            // 共有チャット履歴ストアにユーザーメッセージを追加
+            // これにより、AIに話しかけなくても会話の文脈が保持される
+            _sharedChatStore.AddMessage(ChatRole.User, input);
+            
+            var log = _logger.CreateLogger("AgentFrameworkLogic");
+            log.LogInformation("NonGenerateMessage added to history: {}", input);
+        }
+
+        /// <summary>
+        /// アシスタント（ほのか等）からのメッセージを追加（応答生成なし）
+        /// ネタ帳からの発言など、AI生成ではないアシスタントメッセージに使用
+        /// </summary>
+        /// <param name="message">アシスタントからのメッセージ文字列</param>
+        public void AddAssistantMessage(string message)
+        {
+            // 共有チャット履歴ストアにアシスタントメッセージを追加
+            _sharedChatStore.AddMessage(ChatRole.Assistant, message);
+            
+            var log = _logger.CreateLogger("AgentFrameworkLogic");
+            log.LogInformation("AddAssistantMessage added to history: {}", message);
         }
 
         /// <summary>

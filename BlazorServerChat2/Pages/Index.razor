@@ -94,6 +94,7 @@
                 <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="5">
                     <FluentButton Appearance="Appearance.Accent" OnClick="@(s =>SendAsync(_newMessage))" aria-label="発言するときはこのボタンを押してください">発言</FluentButton>
                     <FluentButton @ref="honoka" Appearance="Appearance.Neutral" OnClick="@(s =>TalkGPT(_newMessage))">ほのかさんに話しかける</FluentButton>
+                    <FluentButton Appearance="Appearance.Outline" OnClick="@(s =>TalkGroupChat(_newMessage))">ほのか＆みずきと話す</FluentButton>
                     <FluentButton Appearance="Appearance.Neutral" OnClick="NetaAsync">ネタをもらう</FluentButton>
                 </FluentStack>
             </FluentGridItem>
@@ -147,10 +148,21 @@
         *@
                 <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal">
                     <FluentGrid Style="width:100%">
-                        <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-2);border-bottom-left-radius:10px;border-top-left-radius:10px;">
-                            <FluentEmoji Value="@(new Emojis.Objects.Color.Default.BlackNib())" Width="64px" />
+                        <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="@($"background-color:{item.NoticeBackgroundColor};border-bottom-left-radius:10px;border-top-left-radius:10px;")">
+                            @if (item.IsHonoka)
+                            {
+                                <span style="font-size:48px;">💁‍♀️</span>
+                            }
+                            else if (item.IsMizuki)
+                            {
+                                <span style="font-size:48px;">👩‍🏫</span>
+                            }
+                            else
+                            {
+                                <FluentEmoji Value="@(new Emojis.Objects.Color.Default.BlackNib())" Width="64px" />
+                            }
                         </FluentGridItem>
-                        <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-2);border-bottom-right-radius:10px;border-top-right-radius:10px;">
+                        <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="@($"background-color:{item.NoticeBackgroundColor};border-bottom-right-radius:10px;border-top-right-radius:10px;")">
                             <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
 
                                 <FluentLabel Typo="Typography.Body">@((MarkupString)item.Body)</FluentLabel>
@@ -485,7 +497,8 @@
         chat.UserId = UserId ?? string.Empty;
         DbContext.Chats.Add(chat);
         DbContext.SaveChanges();
-        agentFrameworkLogic.NonGenerateMessage(chat.Message);
+        // ネタはほのかの発言なのでAssistantとして履歴に追加
+        agentFrameworkLogic.AddAssistantMessage(chat.Message);
         Message message1 = new Message(_username ?? string.Empty, chat.Message, false, UserId ?? string.Empty);
 
         await clientHub.SendAsync(message1);
@@ -584,6 +597,68 @@
 
     }
 
+    /// <summary>
+    /// ほのかとみずきのグループチャットを開始する
+    /// 最大5回のやり取りで会話を続ける（逐次表示）
+    /// </summary>
+    /// <param name="message">ユーザーからのメッセージ</param>
+    private async Task TalkGroupChat(string message)
+    {
+        if (_isChatting && !string.IsNullOrWhiteSpace(message))
+        {
+            // ユーザーのメッセージをチャットに追加
+            Chat chat = new Chat();
+            chat.Name = _username ?? string.Empty;
+            chat.Message = message;
+            chat.UserId = UserId ?? string.Empty;
+            Osaifu osaifu1 = new();
+            DbContext.Chats.Add(chat);
+            var osaifu = DbContext.Osaifus.Find(_username);
+            if (osaifu != null)
+            {
+                osaifu.Kingaku = osaifu.Kingaku + 200;  // グループチャットは2倍のポイント！
+                Kingaku = osaifu.Kingaku;
+            }
+            else
+            {
+                osaifu1.Kingaku = 200;
+                osaifu1.Name = _username;
+                DbContext.Add(osaifu1);
+                Kingaku = 200;
+            }
+            DbContext.SaveChanges();
+            Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);
+
+            await clientHub.SendAsync(message1);
+            room.SendMsg(UserId ?? string.Empty);
+            _newMessage = string.Empty;
+            StateHasChanged();
+
+            // グループチャットを実行（逐次コールバック）
+            await agentFrameworkLogic.RunGroupChat(message, async (agentName, responseText) =>
+            {
+                // 各エージェントの応答を即座にチャットに追加
+                var newChat = new Chat();
+                newChat.Name = _username ?? string.Empty;
+                // [ほのか] または [みずき] で始まるメッセージにする
+                newChat.Message = $"[{agentName}] : {_username}さん{responseText}";
+                newChat.UserId = UserId ?? string.Empty;
+                DbContext.Chats.Add(newChat);
+                await DbContext.SaveChangesAsync();
+                
+                Message newMessage = new Message(_username ?? string.Empty, newChat.Message, false, UserId ?? string.Empty);
+                await clientHub.SendAsync(newMessage);
+                room.SendMsg(UserId ?? string.Empty);
+                
+                // UIを即座に更新
+                await InvokeAsync(StateHasChanged);
+            });
+
+            _newMessage = string.Empty;
+            StateHasChanged();
+        }
+    }
+
     private async Task OnKeyDownAsync(FluentKeyCodeEventArgs args)
     {
         if (args.Key == KeyCode.Enter)
@@ -673,9 +748,24 @@
         /// </summary>
         public string UserId { get; set; } = String.Empty;
         /// <summary>
-        /// 管理人発言かどうか
+        /// 管理人発言かどうか（ほのか または みずき）
         /// </summary>
-        public bool IsNotice => Body.StartsWith("[ほのか]");
+        public bool IsNotice => Body.StartsWith("[ほのか]") || Body.StartsWith("[みずき]");
+
+        /// <summary>
+        /// ほのかの発言かどうか
+        /// </summary>
+        public bool IsHonoka => Body.StartsWith("[ほのか]");
+
+        /// <summary>
+        /// みずきの発言かどうか
+        /// </summary>
+        public bool IsMizuki => Body.StartsWith("[みずき]");
+
+        /// <summary>
+        /// 管理人発言用の背景色
+        /// </summary>
+        public string NoticeBackgroundColor => IsHonoka ? "#ffe4ec" : IsMizuki ? "#e4ecff" : "var(--neutral-layer-2)";
 
         public string CSS => Mine ? "sent" : "received";
     }
