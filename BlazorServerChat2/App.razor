@@ -45,10 +45,15 @@
         <a class="dismiss">🗙</a>
     </div>
 
-    <script src="_framework/blazor.web.js"></script>
+    <script src="_framework/blazor.web.js" autostart="false"></script>
     <script>
         Blazor.start({
             circuit: {
+                // SignalR接続設定（Microsoft Learn推奨）
+                configureSignalR: function (builder) {
+                    builder.withServerTimeout(60000)      // サーバータイムアウト（60秒）
+                           .withKeepAliveInterval(15000); // KeepAlive間隔（15秒）
+                },
                 reconnectionOptions: {
                     maxRetries: 3000,
                     retryIntervalMilliseconds: 2000

@@ -4,6 +4,7 @@ using BlazorApp31.Plugin;
 using BlazorServerChat2;
 using BlazorServerChat2.Areas.Identity;
 using BlazorServerChat2.Data;
+using BlazorServerChat2.Components.Account;
 using BlazorServerChat2.Hubs;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -49,9 +50,12 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = true;
     options.User.AllowedUserNameCharacters = null!;
-
+    // パスキーサポートのためスキーマバージョン3を使用
+    options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
 })
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddSignInManager()
+    .AddDefaultTokenProviders();
 
 //builder.Services.ConfigureApplicationCookie(options =>
 //{
@@ -109,7 +113,24 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 });
 builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents()
+    .AddHubOptions(options =>
+    {
+        // SignalRハブオプション設定（Microsoft Learn推奨）
+        options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);  // クライアントタイムアウト（デフォルト30秒）
+        options.HandshakeTimeout = TimeSpan.FromSeconds(30);       // ハンドシェイクタイムアウト（デフォルト15秒）
+        options.KeepAliveInterval = TimeSpan.FromSeconds(15);      // KeepAlive間隔（デフォルト15秒）
+    });
+
+// カスタムSignalRハブ用のサービス追加
+builder.Services.AddSignalR(options =>
+{
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(30);
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+});
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpClient();
 builder.Services.AddFluentUIComponents(options =>
@@ -227,6 +248,10 @@ app.UseAntiforgery();
 
 app.MapControllers();
 app.MapRazorPages();
+
+// パスキーエンドポイントをマップ
+app.MapAdditionalIdentityEndpoints();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

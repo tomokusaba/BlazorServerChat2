@@ -17,7 +17,7 @@ namespace BlazorServerChat2.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -41,7 +41,7 @@ namespace BlazorServerChat2.Data.Migrations
 
                     b.HasKey("Time");
 
-                    b.ToTable("Chats");
+                    b.ToTable("Chats", (string)null);
                 });
 
             modelBuilder.Entity("BlazorServerChat2.Data.IconMaster", b =>
@@ -61,7 +61,7 @@ namespace BlazorServerChat2.Data.Migrations
 
                     b.HasKey("IconNumber");
 
-                    b.ToTable("IconMaster");
+                    b.ToTable("IconMaster", (string)null);
                 });
 
             modelBuilder.Entity("BlazorServerChat2.Data.MenuMaster", b =>
@@ -83,7 +83,7 @@ namespace BlazorServerChat2.Data.Migrations
 
                     b.HasKey("MenuId");
 
-                    b.ToTable("MenuMaster");
+                    b.ToTable("MenuMaster", (string)null);
                 });
 
             modelBuilder.Entity("BlazorServerChat2.Data.NetaMastar", b =>
@@ -102,7 +102,7 @@ namespace BlazorServerChat2.Data.Migrations
 
                     b.HasKey("NetaId");
 
-                    b.ToTable("NetaMastar");
+                    b.ToTable("NetaMastar", (string)null);
                 });
 
             modelBuilder.Entity("BlazorServerChat2.Data.Osaifu", b =>
@@ -115,7 +115,7 @@ namespace BlazorServerChat2.Data.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("Osaifus");
+                    b.ToTable("Osaifus", (string)null);
                 });
 
             modelBuilder.Entity("BlazorServerChat2.Data.UserChatSetting", b =>
@@ -132,7 +132,7 @@ namespace BlazorServerChat2.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserChatSetting");
+                    b.ToTable("UserChatSetting", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

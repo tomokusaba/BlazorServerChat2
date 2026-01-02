@@ -3,14 +3,24 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using BlazorServerChat2.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using static BlazorServerChat2.Pages.Index;
 using System.Collections.Concurrent;
 
 namespace BlazorServerChat2.Hubs
 {
+    /// <summary>
+    /// チャット用SignalRハブ
+    /// </summary>
     public class BlazorChatHub : Hub
     {
         public const string HubUrl = "/chat";
+        private readonly ILogger<BlazorChatHub> _logger;
+
+        public BlazorChatHub(ILogger<BlazorChatHub> logger)
+        {
+            _logger = logger;
+        }
 
         /// <summary>
         /// クライアントへメッセージ送信
@@ -20,7 +30,7 @@ namespace BlazorServerChat2.Hubs
         /// <returns></returns>
         public async Task Broadcast(string username, Message message)
         {
-            
+            _logger.LogDebug("Broadcast from {Username}: {Message}", username, message.Body);
             await Clients.All.SendAsync("Broadcast", username, message);
         }
 
@@ -28,9 +38,9 @@ namespace BlazorServerChat2.Hubs
         /// コネクション接続時
         /// </summary>
         /// <returns></returns>
-        public override  Task OnConnectedAsync()
+        public override Task OnConnectedAsync()
         {
-            Console.WriteLine($"{Context.ConnectionId} connected");
+            _logger.LogInformation("{ConnectionId} connected", Context.ConnectionId);
             return base.OnConnectedAsync();
         }
 
@@ -41,7 +51,14 @@ namespace BlazorServerChat2.Hubs
         /// <returns></returns>
         public override async Task OnDisconnectedAsync(Exception? e)
         {
-            Console.WriteLine($"Disconnected {e?.Message} {Context.ConnectionId}");
+            if (e is not null)
+            {
+                _logger.LogWarning(e, "Disconnected with error: {ConnectionId}", Context.ConnectionId);
+            }
+            else
+            {
+                _logger.LogInformation("Disconnected: {ConnectionId}", Context.ConnectionId);
+            }
             await base.OnDisconnectedAsync(e);
         }
     }

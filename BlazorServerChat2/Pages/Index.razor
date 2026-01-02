@@ -101,7 +101,30 @@
 
     </FluentStack>
     <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="20">
-        @foreach (var item in clientHub._messages.OrderByDescending(x => x.PostTime))
+        @if (_isLoadingHistory)
+        {
+            @for (int i = 0; i < 5; i++)
+            {
+                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalGap="10">
+                    <FluentGrid Style="width:100%">
+                        <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-2);border-bottom-left-radius:10px;border-top-left-radius:10px;padding:8px;">
+                            <FluentSkeleton Shape="SkeletonShape.Circle" Width="48px" Height="48px" Shimmer="true" />
+                        </FluentGridItem>
+                        <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-2);border-bottom-right-radius:10px;border-top-right-radius:10px;padding:8px;">
+                            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="8">
+                                <FluentSkeleton Shape="SkeletonShape.Rect" Width="60%" Height="20px" Shimmer="true" />
+                                <FluentSkeleton Shape="SkeletonShape.Rect" Width="80%" Height="16px" Shimmer="true" />
+                                <FluentSkeleton Shape="SkeletonShape.Rect" Width="30%" Height="14px" Shimmer="true" />
+                            </FluentStack>
+                        </FluentGridItem>
+                    </FluentGrid>
+                </FluentStack>
+                <FluentDivider Role="DividerRole.Presentation" />
+            }
+        }
+        else
+        {
+            @foreach (var item in clientHub._messages.OrderByDescending(x => x.PostTime))
         {
             @if (item.IsNotice)
             {
@@ -271,6 +294,7 @@
                 }
             }
         }
+        }
     </FluentStack>
 </FluentStack>
 <hr />
@@ -281,6 +305,9 @@
     private string user = string.Empty;
     // flag to indicate chat status
     private bool _isChatting = false;
+
+    // チャット履歴の読み込み中フラグ
+    private bool _isLoadingHistory = true;
 
     // name of the user who will be chatting
     private string _username = string.Empty;
@@ -366,6 +393,9 @@
                 message.UserId = chat.UserId;
                 clientHub._messages.Add(message);
             }
+
+            // 読み込み完了
+            _isLoadingHistory = false;
 
             var osaifu = DbContext.Osaifus.Find(_username);
             if (osaifu != null)

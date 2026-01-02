@@ -62,6 +62,11 @@ namespace  BlazorServerChat2.Areas.Identity.Pages.Account.Manage
         public static string TwoFactorAuthentication => "TwoFactorAuthentication";
 
         /// <summary>
+        ///     パスキー管理ページ
+        /// </summary>
+        public static string Passkeys => "Passkeys";
+
+        /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
@@ -108,6 +113,11 @@ namespace  BlazorServerChat2.Areas.Identity.Pages.Account.Manage
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public static string TwoFactorAuthenticationNavClass(ViewContext viewContext) => PageNavClass(viewContext, TwoFactorAuthentication);
+
+        /// <summary>
+        ///     パスキー管理ページのナビゲーションクラス
+        /// </summary>
+        public static string PasskeysNavClass(ViewContext viewContext) => PageNavClass(viewContext, Passkeys);
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used

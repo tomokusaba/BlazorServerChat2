@@ -10,21 +10,22 @@ namespace BlazorServerChat2.Data
     /// <summary>
     /// SignalRのクライアント側接続管理クラス
     /// Blazorの接続単位にDIすることを想定
+    /// IAsyncDisposableを実装してリソースを適切に解放
     /// </summary>
-    public class ClientHub : NavigationManager
+    public class ClientHub : IAsyncDisposable
     {
         private HubConnection? _hubConnection;
         private string? _hubUrl;
         /// <summary>
         /// チャットのメッセージリスト
         /// </summary>
-        public List<Message> _messages = new List<Message>();
-        private AuthenticationStateProvider _authenticationStateProvider;
-        private NavigationManager _navigationManager;
-        private IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+        public List<Message> _messages = [];
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
+        private readonly NavigationManager _navigationManager;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
         private string? _username;
         private string? UserId;
-        private Room _room;
+        private readonly Room _room;
         public event Action? OnChange;
         public int Room = 0;
 
@@ -43,6 +44,10 @@ namespace BlazorServerChat2.Data
             _room = room;
         }
 
+        /// <summary>
+        /// 接続状態を取得
+        /// </summary>
+        public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
         /// <summary>
         /// ページ初期表示に呼び出すメソッド
@@ -54,42 +59,67 @@ namespace BlazorServerChat2.Data
         {
             string baseUrl = _navigationManager.BaseUri;
 
-
-
             _hubUrl = baseUrl.TrimEnd('/') + BlazorChatHub.HubUrl;
 
-            if (_hubConnection == null)
+            if (_hubConnection is null)
             {
+                // 最新のHubConnectionBuilder設定（Microsoft Learn推奨）
                 _hubConnection = new HubConnectionBuilder()
                     .WithUrl(_hubUrl)
+                    .WithServerTimeout(TimeSpan.FromSeconds(60))      // サーバータイムアウト（デフォルト30秒）
+                    .WithKeepAliveInterval(TimeSpan.FromSeconds(15))  // KeepAlive間隔（デフォルト15秒）
+                    .WithAutomaticReconnect()                          // 自動再接続を有効化
                     .Build();
 
+                // ハンドシェイクタイムアウト設定
+                _hubConnection.HandshakeTimeout = TimeSpan.FromSeconds(30);
+
+                // メッセージ受信ハンドラ登録
                 _hubConnection.On<string, Message>("Broadcast", BroadcastMessage);
 
+                // 再接続イベントハンドラ
+                _hubConnection.Reconnecting += error =>
+                {
+                    Console.WriteLine($"SignalR再接続中: {error?.Message}");
+                    return Task.CompletedTask;
+                };
+
+                _hubConnection.Reconnected += connectionId =>
+                {
+                    Console.WriteLine($"SignalR再接続完了: {connectionId}");
+                    return Task.CompletedTask;
+                };
+
+                _hubConnection.Closed += error =>
+                {
+                    Console.WriteLine($"SignalR接続終了: {error?.Message}");
+                    return Task.CompletedTask;
+                };
 
                 await _hubConnection.StartAsync();
 
-
                 var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
                 _username = authState.User.Identity?.Name;
-                UserId = authState.User.Claims.Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Select(x => x.Value).FirstOrDefault();
+                UserId = authState.User.Claims
+                    .Where(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
+                    .Select(x => x.Value)
+                    .FirstOrDefault();
 
-                Message message = new Message(_username ?? string.Empty, $"[ほのか] {_username} さんおかえりなさい", false, UserId ?? string.Empty);
+                Message message = new(_username ?? string.Empty, $"[ほのか] {_username} さんおかえりなさい", false, UserId ?? string.Empty);
 
-                Chat chat = new Chat();
-                chat.Message = message.Body;
-                chat.Name = _username ?? string.Empty;
-                chat.UserId = UserId ?? string.Empty;
-                
+                Chat chat = new()
+                {
+                    Message = message.Body,
+                    Name = _username ?? string.Empty,
+                    UserId = UserId ?? string.Empty
+                };
+
                 await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
                 dbContext.Chats.Add(chat);
                 await dbContext.SaveChangesAsync();
 
                 await SendAsync(message);
-
-
             }
-
         }
 
         /// <summary>
@@ -99,10 +129,13 @@ namespace BlazorServerChat2.Data
         /// <returns></returns>
         public async Task SendAsync(Message message)
         {
-            _room.SendMsg(message.UserId);
-            await _hubConnection!.SendAsync("Broadcast", message.Username, message);
-            Room = _room.room.Count;
-            NotifyStateChanged();
+            if (_hubConnection is not null && IsConnected)
+            {
+                _room.SendMsg(message.UserId);
+                await _hubConnection.SendAsync("Broadcast", message.Username, message);
+                Room = _room.room.Count;
+                NotifyStateChanged();
+            }
         }
 
         /// <summary>
@@ -111,11 +144,14 @@ namespace BlazorServerChat2.Data
         /// <returns></returns>
         public async Task DisconnectAsync()
         {
-            await _hubConnection!.StopAsync();
-            await _hubConnection.DisposeAsync();
-            Room = _room.room.Count;
-            NotifyStateChanged();
-
+            if (_hubConnection is not null)
+            {
+                await _hubConnection.StopAsync();
+                await _hubConnection.DisposeAsync();
+                _hubConnection = null;
+                Room = _room.room.Count;
+                NotifyStateChanged();
+            }
         }
 
         /// <summary>
@@ -133,9 +169,11 @@ namespace BlazorServerChat2.Data
             try
             {
                 NotifyStateChanged();
-                
-            } catch (Exception) { }
-
+            }
+            catch (Exception)
+            {
+                // 通知失敗時は無視
+            }
         }
 
         /// <summary>
@@ -143,5 +181,17 @@ namespace BlazorServerChat2.Data
         /// </summary>
         private void NotifyStateChanged() => OnChange?.Invoke();
 
+        /// <summary>
+        /// IAsyncDisposable実装
+        /// リソースを適切に解放
+        /// </summary>
+        public async ValueTask DisposeAsync()
+        {
+            if (_hubConnection is not null)
+            {
+                await _hubConnection.DisposeAsync();
+                _hubConnection = null;
+            }
+        }
     }
 }
