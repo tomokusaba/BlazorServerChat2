@@ -65,10 +65,13 @@ else
 
 @section Scripts {
     <script>
+        // ベースパスを取得
+        const basePath = document.querySelector('base')?.getAttribute('href')?.replace(/\/$/, '') || '';
+        
         document.getElementById('add-passkey')?.addEventListener('click', async function() {
             try {
                 // パスキー作成オプションを取得
-                const optionsResponse = await fetch('/Account/PasskeyCreationOptions', {
+                const optionsResponse = await fetch(basePath + '/Account/PasskeyCreationOptions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -116,7 +119,7 @@ else
                 const credentialJson = credentialToJson(credential);
 
                 // パスキーを追加
-                const addResponse = await fetch('/Account/AddPasskey', {
+                const addResponse = await fetch(basePath + '/Account/AddPasskey', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

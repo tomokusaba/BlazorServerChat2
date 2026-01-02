@@ -43,6 +43,10 @@
                     <p>
                         <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">あびや登録</a>
                     </p>
+                    <p>
+                        <a asp-page="./Manage/Passkeys">🔑 パスキーを管理・作成する</a>
+                        <small class="text-muted d-block">※ログイン後にパスキーを登録できます</small>
+                    </p>
                 </div>
             </form>
         </section>
@@ -58,13 +62,16 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        // ベースパスを取得
+        const basePath = document.querySelector('base')?.getAttribute('href')?.replace(/\/$/, '') || '';
+        
         document.getElementById('passkey-login').addEventListener('click', async function() {
             const emailInput = document.querySelector('input[name="Input.Email"]');
             const email = emailInput?.value || '';
             
             try {
                 // パスキー要求オプションを取得
-                const optionsResponse = await fetch('/Account/PasskeyRequestOptions', {
+                const optionsResponse = await fetch(basePath + '/Account/PasskeyRequestOptions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -107,7 +114,7 @@
                 const credentialJson = credentialToJson(credential);
                 
                 // パスキーでサインイン
-                const signInResponse = await fetch('/Account/PasskeySignIn', {
+                const signInResponse = await fetch(basePath + '/Account/PasskeySignIn', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

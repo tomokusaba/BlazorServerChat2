@@ -2,11 +2,13 @@
 @using Microsoft.AspNetCore.Mvc.ViewEngines
 @inject IWebHostEnvironment Environment
 @inject ICompositeViewEngine Engine
+@inject IConfiguration Configuration
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="@(Configuration["BasePath"] ?? "/")" />
     <title>@ViewData["Title"] - BlazorServerChat2</title>
 
     <environment include="Development">
