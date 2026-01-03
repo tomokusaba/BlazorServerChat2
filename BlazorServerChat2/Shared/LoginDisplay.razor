@@ -1,12 +1,14 @@
 ﻿<AuthorizeView>
     <Authorized>
-        <FluentAnchor Href="Identity/Account/Manage" Appearance="Appearance.Filled"><FluentLabel Color="Color.Fill"> @context.User.Identity?.Name　さん</FluentLabel></FluentAnchor>
+        <FluentLabel Style="color: var(--foreground-on-accent-rest);">
+            @context.User.Identity?.Name　さん
+        </FluentLabel>
         <form method="post" action="Identity/Account/LogOut">
             <FluentButton type="ButtonType.Submit" Appearance="Appearance.Neutral">ログアウト</FluentButton>
         </form>
     </Authorized>
     <NotAuthorized>
-        <FluentAnchor Href="Identity/Account/Register">あびや登録</FluentAnchor>
-        <FluentAnchor Href="Identity/Account/Login">ログイン</FluentAnchor>
+        <FluentAnchor Href="Identity/Account/Register" Style="color: var(--foreground-on-accent-rest);">あびや登録</FluentAnchor>
+        <FluentAnchor Href="Identity/Account/Login" Style="color: var(--foreground-on-accent-rest);">ログイン</FluentAnchor>
     </NotAuthorized>
 </AuthorizeView>

@@ -71,3 +71,21 @@ a, .btn-link {
 .body-content {
     height: calc(100vh - 77px) !important;
 }
+
+/* ほのか・みずきのメッセージ色（ライトモード） */
+:root {
+    --honoka-bg: #ffe4ec;
+    --honoka-text: #8b2252;
+    --mizuki-bg: #e4ecff;
+    --mizuki-text: #2c3e7a;
+}
+
+/* ほのか・みずきのメッセージ色（ダークモード） */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --honoka-bg: #5a2035;
+        --honoka-text: #ffb8cc;
+        --mizuki-bg: #1a2a50;
+        --mizuki-text: #b8ccff;
+    }
+}

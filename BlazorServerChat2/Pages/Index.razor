@@ -58,7 +58,7 @@
             <span>ログインユーザ： <b>@_username</b>さん</span>
             <FluentButton Appearance="Appearance.Neutral" OnClick="DisconnectAsync">退室</FluentButton>
         </FluentStack><br />
-        <span><NavLink class="nav-link" href="log">これまでのお話し</NavLink> </span><br />
+        <FluentAnchor Href="log" Appearance="Appearance.Hypertext">これまでのお話し</FluentAnchor><br />
         <span>
             たぶん　@room.roomCount 人在室中
             @if (room.roomNames != null)
@@ -148,7 +148,7 @@
         *@
                 <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal">
                     <FluentGrid Style="width:100%">
-                        <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="@($"background-color:{item.NoticeBackgroundColor};border-bottom-left-radius:10px;border-top-left-radius:10px;")">
+                        <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="@($"{item.NoticeStyle}border-bottom-left-radius:10px;border-top-left-radius:10px;")">
                             @if (item.IsHonoka)
                             {
                                 <span style="font-size:48px;">💁‍♀️</span>
@@ -162,7 +162,7 @@
                                 <FluentEmoji Value="@(new Emojis.Objects.Color.Default.BlackNib())" Width="64px" />
                             }
                         </FluentGridItem>
-                        <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="@($"background-color:{item.NoticeBackgroundColor};border-bottom-right-radius:10px;border-top-right-radius:10px;")">
+                        <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="@($"{item.NoticeStyle}border-bottom-right-radius:10px;border-top-right-radius:10px;")">
                             <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
 
                                 <FluentLabel Typo="Typography.Body">@((MarkupString)item.Body)</FluentLabel>
@@ -347,6 +347,19 @@
     public void Dispose()
     {
         //clientHub.OnChange -= StateHasChanged;
+        // DarkMode変更イベントの購読解除
+        MainLayout.OnDarkModeChanged -= OnDarkModeChanged;
+    }
+
+    /// <summary>
+    /// DarkMode変更時のコールバック
+    /// </summary>
+    private void OnDarkModeChanged()
+    {
+        _ = InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
     }
 
 
@@ -367,6 +380,9 @@
     {
         // キャッシュの初期化（初回のみDBアクセス）
         await userChatSettingCache.InitializeAsync();
+        
+        // DarkMode変更イベントを購読
+        MainLayout.OnDarkModeChanged += OnDarkModeChanged;
         
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         user = authState!.User.Identity?.Name!;
@@ -552,6 +568,26 @@
     {
         if (_isChatting && !string.IsNullOrWhiteSpace(message))
         {
+            // 残高チェック（1000円必要）
+            var currentOsaifu = DbContext.Osaifus.Find(_username);
+            int currentBalance = currentOsaifu?.Kingaku ?? 0;
+            if (currentBalance < 1000)
+            {
+                // 残高不足メッセージを表示
+                Chat errorChat = new Chat();
+                errorChat.Name = _username ?? string.Empty;
+                errorChat.Message = $"[ほのか] : {_username}さん、ごめんね！残高が足りないみたい…💸 私とお話するには1,000円必要だよ！（現在: {currentBalance:N0}円）";
+                errorChat.UserId = UserId ?? string.Empty;
+                DbContext.Chats.Add(errorChat);
+                DbContext.SaveChanges();
+                Message errorMessage = new Message(_username ?? string.Empty, errorChat.Message, false, UserId ?? string.Empty);
+                await clientHub.SendAsync(errorMessage);
+                room.SendMsg(UserId ?? string.Empty);
+                _newMessage = string.Empty;
+                StateHasChanged();
+                return;
+            }
+
             Chat chat = new Chat();
             chat.Name = _username ?? string.Empty;
             chat.Message = message;
@@ -561,15 +597,15 @@
             var osaifu = DbContext.Osaifus.Find(_username);
             if (osaifu != null)
             {
-                osaifu.Kingaku = osaifu.Kingaku + 100;
+                osaifu.Kingaku = osaifu.Kingaku - 1000;  // ほのかに話しかけると1000円消費
                 Kingaku = osaifu.Kingaku;
             }
             else
             {
-                osaifu1.Kingaku = 100;
+                osaifu1.Kingaku = -1000;  // 新規ユーザーは-1000円からスタート
                 osaifu1.Name = _username;
                 DbContext.Add(osaifu1);
-                Kingaku = 100;
+                Kingaku = -1000;
             }
             DbContext.SaveChanges();
             Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);
@@ -606,6 +642,26 @@
     {
         if (_isChatting && !string.IsNullOrWhiteSpace(message))
         {
+            // 残高チェック（2000円必要）
+            var currentOsaifu = DbContext.Osaifus.Find(_username);
+            int currentBalance = currentOsaifu?.Kingaku ?? 0;
+            if (currentBalance < 2000)
+            {
+                // 残高不足メッセージを表示
+                Chat errorChat = new Chat();
+                errorChat.Name = _username ?? string.Empty;
+                errorChat.Message = $"[ほのか] : {_username}さん、グループチャットは贅沢なの！👑 私とみずきちゃん両方とお話するには2,000円必要だよ！（現在: {currentBalance:N0}円）";
+                errorChat.UserId = UserId ?? string.Empty;
+                DbContext.Chats.Add(errorChat);
+                DbContext.SaveChanges();
+                Message errorMessage = new Message(_username ?? string.Empty, errorChat.Message, false, UserId ?? string.Empty);
+                await clientHub.SendAsync(errorMessage);
+                room.SendMsg(UserId ?? string.Empty);
+                _newMessage = string.Empty;
+                StateHasChanged();
+                return;
+            }
+
             // ユーザーのメッセージをチャットに追加
             Chat chat = new Chat();
             chat.Name = _username ?? string.Empty;
@@ -616,15 +672,15 @@
             var osaifu = DbContext.Osaifus.Find(_username);
             if (osaifu != null)
             {
-                osaifu.Kingaku = osaifu.Kingaku + 200;  // グループチャットは2倍のポイント！
+                osaifu.Kingaku = osaifu.Kingaku - 2000;  // グループチャット（ほのか＋みずき）は2000円消費
                 Kingaku = osaifu.Kingaku;
             }
             else
             {
-                osaifu1.Kingaku = 200;
+                osaifu1.Kingaku = -2000;  // 新規ユーザーは-2000円からスタート
                 osaifu1.Name = _username;
                 DbContext.Add(osaifu1);
-                Kingaku = 200;
+                Kingaku = -2000;
             }
             DbContext.SaveChanges();
             Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);
@@ -763,9 +819,39 @@
         public bool IsMizuki => Body.StartsWith("[みずき]");
 
         /// <summary>
-        /// 管理人発言用の背景色
+        /// 管理人発言用の背景色（ダークモード対応）
         /// </summary>
-        public string NoticeBackgroundColor => IsHonoka ? "#ffe4ec" : IsMizuki ? "#e4ecff" : "var(--neutral-layer-2)";
+        public string NoticeBackgroundColor
+        {
+            get
+            {
+                if (IsHonoka)
+                    return MainLayout.DarkMode ? "#5a2035" : "#ffe4ec";
+                if (IsMizuki)
+                    return MainLayout.DarkMode ? "#1a2a50" : "#e4ecff";
+                return "var(--neutral-layer-2)";
+            }
+        }
+
+        /// <summary>
+        /// 管理人発言用のテキスト色（ダークモード対応）
+        /// </summary>
+        public string NoticeTextColor
+        {
+            get
+            {
+                if (IsHonoka)
+                    return MainLayout.DarkMode ? "#ffb8cc" : "#8b2252";
+                if (IsMizuki)
+                    return MainLayout.DarkMode ? "#b8ccff" : "#2c3e7a";
+                return "var(--neutral-foreground-rest)";
+            }
+        }
+
+        /// <summary>
+        /// 管理人発言用のスタイル（背景色＋テキスト色）
+        /// </summary>
+        public string NoticeStyle => $"background-color:{NoticeBackgroundColor};color:{NoticeTextColor};";
 
         public string CSS => Mine ? "sent" : "received";
     }

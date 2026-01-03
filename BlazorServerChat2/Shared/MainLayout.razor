@@ -27,14 +27,15 @@
 <FluentDesignSystemProvider @ref="_designSystemProvider" AccentBaseColor="#185ABD" BaseLayerLuminance="@_baseLayerLuminance" Style="height:100%">
 <FluentLayout Style="height: 100%">
 
-    <FluentHeader>
+    <FluentHeader Style="background-color: var(--accent-fill-rest);">
         <FluentStack Orientation="Orientation.Horizontal"HorizontalAlignment="HorizontalAlignment.Left">
-            あびや
+            <FluentLabel Typo="Typography.H4" Style="color: var(--foreground-on-accent-rest); font-weight: bold;">あびや</FluentLabel>
         </FluentStack>
 
         <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.Right" VerticalAlignment="VerticalAlignment.Center">
             <LoginDisplay />
-            <FluentSwitch @bind-Value="@IsDark" @ref="@Switch"  CheckedMessage="DarkMode" UncheckedMessage="LightMode" />
+            <FluentSwitch @bind-Value="@IsDark" @ref="@Switch" />
+            <FluentLabel Style="color: var(--foreground-on-accent-rest);">@(IsDark ? "DarkMode" : "LightMode")</FluentLabel>
         </FluentStack>
     </FluentHeader>
     <FluentStack Orientation="Orientation.Horizontal" Width="100%" Style="height:stretch">
@@ -75,6 +76,11 @@
     }
 
     public static bool DarkMode = false;
+    
+    /// <summary>
+    /// ダークモード変更時のイベント
+    /// </summary>
+    public static event Action? OnDarkModeChanged;
 
     public bool IsDark
     {
@@ -92,6 +98,9 @@
                 _baseLayerLuminance = StandardLuminance.LightMode.GetLuminanceValue();
             }
             StateHasChanged();
+            
+            // イベントを発火して他のコンポーネントに通知
+            OnDarkModeChanged?.Invoke();
         }
     }
 
