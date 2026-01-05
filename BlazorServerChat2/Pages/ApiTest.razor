@@ -1,0 +1,148 @@
+@page "/api-test"
+@rendermode InteractiveAuto
+@using BlazorServerChat2.Shared.Models
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<PageTitle>API テスト</PageTitle>
+
+<h3>🧪 Web API テストページ</h3>
+<p>このページはInteractive Autoモードで動作しています（初回はサーバー、以降はWASM）</p>
+
+<div style="margin-bottom: 20px;">
+    <h4>📊 ルームステータス</h4>
+    <button class="btn btn-primary" @onclick="LoadRoomStatus">ルームステータス取得</button>
+    @if (roomStatus != null)
+    {
+        <div style="background-color: #f0f0f0; padding: 10px; margin-top: 10px; border-radius: 5px;">
+            <p><strong>在室人数:</strong> @roomStatus.RoomCount 人</p>
+            <p><strong>在室者:</strong> @string.Join(", ", roomStatus.RoomNames ?? [])</p>
+        </div>
+    }
+</div>
+
+<div style="margin-bottom: 20px;">
+    <h4>💬 チャット履歴</h4>
+    <button class="btn btn-primary" @onclick="LoadChats">チャット履歴取得</button>
+    @if (chats != null && chats.Any())
+    {
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="background-color: #333; color: white;">
+                    <th style="padding: 8px; text-align: left;">時刻</th>
+                    <th style="padding: 8px; text-align: left;">名前</th>
+                    <th style="padding: 8px; text-align: left;">メッセージ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var chat in chats.Take(10))
+                {
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 8px;">@chat.Time.ToString("yyyy/MM/dd HH:mm")</td>
+                        <td style="padding: 8px;">@chat.Name</td>
+                        <td style="padding: 8px;">@chat.Message</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<div style="margin-bottom: 20px;">
+    <h4>💰 お財布情報</h4>
+    <button class="btn btn-primary" @onclick="LoadOsaifu">お財布取得</button>
+    @if (osaifu != null)
+    {
+        <div style="background-color: #e8f5e9; padding: 10px; margin-top: 10px; border-radius: 5px;">
+            <p><strong>名前:</strong> @osaifu.Name</p>
+            <p><strong>残高:</strong> @osaifu.Kingaku.ToString("N0") 円</p>
+        </div>
+    }
+</div>
+
+<div style="margin-bottom: 20px;">
+    <h4>🎨 アイコン一覧</h4>
+    <button class="btn btn-primary" @onclick="LoadIcons">アイコン取得</button>
+    @if (icons != null && icons.Any())
+    {
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+            @foreach (var icon in icons.Take(10))
+            {
+                <div style="text-align: center;">
+                    @if (!string.IsNullOrEmpty(icon.IconBase64))
+                    {
+                        <img src="data:image/png;base64,@icon.IconBase64" style="width: 48px; height: 48px;" alt="@icon.IconName" />
+                    }
+                    <p style="font-size: 12px;">@icon.IconName</p>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div style="background-color: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin-top: 20px;">
+        <strong>エラー:</strong> @errorMessage
+    </div>
+}
+
+@code {
+    private RoomStatusDto? roomStatus;
+    private List<ChatDto>? chats;
+    private OsaifuDto? osaifu;
+    private List<IconDto>? icons;
+    private string? errorMessage;
+
+    private async Task LoadRoomStatus()
+    {
+        try
+        {
+            errorMessage = null;
+            roomStatus = await Http.GetFromJsonAsync<RoomStatusDto>("/api/chat/room-status");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"ルームステータス取得エラー: {ex.Message}";
+        }
+    }
+
+    private async Task LoadChats()
+    {
+        try
+        {
+            errorMessage = null;
+            chats = await Http.GetFromJsonAsync<List<ChatDto>>("/api/chat");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"チャット履歴取得エラー: {ex.Message}";
+        }
+    }
+
+    private async Task LoadOsaifu()
+    {
+        try
+        {
+            errorMessage = null;
+            osaifu = await Http.GetFromJsonAsync<OsaifuDto>("/api/osaifu");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"お財布取得エラー: {ex.Message}";
+        }
+    }
+
+    private async Task LoadIcons()
+    {
+        try
+        {
+            errorMessage = null;
+            icons = await Http.GetFromJsonAsync<List<IconDto>>("/api/usersettings/icons");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"アイコン取得エラー: {ex.Message}";
+        }
+    }
+}

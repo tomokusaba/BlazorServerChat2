@@ -1,19 +1,18 @@
 ﻿@page "/osaifu"
-@using BlazorServerChat2.Data
+@rendermode InteractiveAuto
+@using BlazorServerChat2.Shared.Models
+@using System.Net.Http.Json
 
-@inject ApplicationDbContext DbContext
+@inject HttpClient Http
 
 <FluentLabel Typo="Typography.PageTitle">お財布リスト</FluentLabel>
 
-@if (osaifus != null)
+@if (isLoading)
 {
-    @*<RadzenDataGrid Data=@osaifus TItem="Osaifu">
-        <Columns>
-            <RadzenDataGridColumn TItem="Osaifu" property="Name" Title="名前" ></RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Osaifu" property="Kingaku" Title="金額"></RadzenDataGridColumn>
-
-        </Columns>
-    </RadzenDataGrid>*@
+    <FluentProgressRing />
+}
+else if (osaifus != null)
+{
     <FluentDataGrid Items="@osaifus.AsQueryable()">
         <PropertyColumn Property="@(p => p.Name)" Title="名前" />
         <PropertyColumn Property="@(p => p.Kingaku)" Title="金額" />
@@ -21,10 +20,22 @@
 }
 
 @code {
-    IEnumerable<Osaifu> osaifus = default!;
+    private List<OsaifuDto>? osaifus;
+    private bool isLoading = true;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        osaifus = DbContext.Osaifus.ToList();
+        try
+        {
+            osaifus = await Http.GetFromJsonAsync<List<OsaifuDto>>("/api/osaifu-list");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading osaifus: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 }

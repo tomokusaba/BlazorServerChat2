@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using static BlazorServerChat2.Pages.Index;
 using System.Collections.Concurrent;
+using BlazorServerChat2.Shared.Models;
 
 namespace BlazorServerChat2.Hubs
 {
@@ -32,6 +33,15 @@ namespace BlazorServerChat2.Hubs
         {
             _logger.LogDebug("Broadcast from {Username}: {Message}", username, message.Body);
             await Clients.All.SendAsync("Broadcast", username, message);
+        }
+
+        /// <summary>
+        /// AIメッセージをストリーミング送信（全クライアントへ）
+        /// </summary>
+        public async Task BroadcastAiMessage(string agentName, string message, DateTime postTime)
+        {
+            _logger.LogDebug("AI Broadcast from {AgentName}: {Message}", agentName, message);
+            await Clients.All.SendAsync("AiMessageReceived", agentName, message, postTime);
         }
 
         /// <summary>

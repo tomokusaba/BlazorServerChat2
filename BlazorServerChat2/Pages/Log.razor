@@ -1,51 +1,53 @@
 ﻿@page "/log"
-@using BlazorServerChat2.Data
+@rendermode InteractiveAuto
+@using BlazorServerChat2.Shared.Models
+@using System.Net.Http.Json
 
-@inject ApplicationDbContext DbContext
+@inject HttpClient Http
+
 <FluentLabel Typo="Typography.Subject">あびやログ</FluentLabel>
-@*<RadzenDataGrid Data=@chats TItem="Chat">
-    <Columns>
-        <RadzenDataGridColumn TItem="Chat" property="Time" Title="投稿時刻" Width="20%"></RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="Chat" property="Name" Title="名前" Width="20%"></RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="Chat" property="Message" Title="投稿内容">
-            <Template Context="data">
-                @if (data.Message.StartsWith("[ほのか]"))
+
+@if (isLoading)
+{
+    <FluentProgressRing />
+}
+else if (chats != null)
+{
+    <FluentDataGrid Items="@chats.AsQueryable()" GridTemplateColumns="0.5fr 0.5fr 2fr" MultiLine="true">
+        <PropertyColumn Property="@(p => p.Time)" Format="yyyy/MM/dd HH:mm:ss" Title="投稿時刻" />
+        <PropertyColumn Property="@(p => p.Name)" Title="名前" />
+        <TemplateColumn Title="投稿内容">
+            <ChildContent>
+                @if (context.Message?.StartsWith("[ほのか]") == true)
                 {
-                    @((MarkupString)data.Message)
+                    @((MarkupString)context.Message)
                 }
                 else
                 {
-                    @data.Message
+                    @context.Message
                 }
-            </Template>
-        </RadzenDataGridColumn>
-
-    </Columns>
-</RadzenDataGrid>
-*@
-<FluentDataGrid Items="@chats.AsQueryable()" GridTemplateColumns="0.5fr 0.5fr 2fr" MultiLine="true">
-    <PropertyColumn Property="@(p => p.Time)" Format="yyyy/MM/dd HH:mm:ss" Title="投稿時刻" />
-    <PropertyColumn Property="@(p => p.Name)" Title="名前" />
-<TemplateColumn Title="投稿内容">
-<ChildContent>
-        @if (context.Message.StartsWith("[ほのか]"))
-        {
-            @((MarkupString)context.Message)
-        }
-        else
-        {
-            @context.Message
-        }
-    </ChildContent>
-</TemplateColumn>
-</FluentDataGrid>
+            </ChildContent>
+        </TemplateColumn>
+    </FluentDataGrid>
+}
 
 @code {
-    IEnumerable<Chat> chats = default!;
+    private List<ChatDto>? chats;
+    private bool isLoading = true;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        chats = DbContext.Chats.OrderByDescending(x => x.Time).ToList();
+        try
+        {
+            chats = await Http.GetFromJsonAsync<List<ChatDto>>("/api/chat");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading chats: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
-
 }

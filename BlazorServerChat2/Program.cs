@@ -111,16 +111,14 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
     options.ValidationInterval = TimeSpan.FromDays(3);
 
 });
+
+// Web API コントローラーのサポート
+builder.Services.AddControllers();
+
 builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
-    .AddHubOptions(options =>
-    {
-        // SignalRハブオプション設定（Microsoft Learn推奨）
-        options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);  // クライアントタイムアウト（デフォルト30秒）
-        options.HandshakeTimeout = TimeSpan.FromSeconds(30);       // ハンドシェイクタイムアウト（デフォルト15秒）
-        options.KeepAliveInterval = TimeSpan.FromSeconds(15);      // KeepAlive間隔（デフォルト15秒）
-    });
+    .AddInteractiveWebAssemblyComponents();  // Interactive Auto サポート
 
 // カスタムSignalRハブ用のサービス追加
 builder.Services.AddSignalR(options =>
@@ -144,6 +142,12 @@ builder.Services.AddScoped<ClientHub>();
 builder.Services.AddSingleton<Room>();
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddSingleton<UserChatSettingCache>();
+
+// InteractiveAuto用のHttpClient認証サポート
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<BlazorServerChat2.Services.AuthenticatedHttpClientFactory>();
+
 //builder.Services.AddSingleton<SemanticKernelLogic>();
 string baseUrl = builder.Configuration.GetValue<string>("Settings:BaseUrl") ?? string.Empty;
 string key = builder.Configuration.GetValue<string>("Settings:OpenAIKey") ?? string.Empty;
@@ -233,7 +237,6 @@ else
 
     app.UseHsts();
 }
-app.MapHub<BlazorChatHub>(BlazorChatHub.HubUrl);
 app.UseHttpsRedirection();
 
 //app.UseStaticFiles();
@@ -246,6 +249,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 
+// SignalRハブはUseAuthentication/UseAuthorizationの後にマップ
+app.MapHub<BlazorChatHub>(BlazorChatHub.HubUrl);
+
 app.MapControllers();
 app.MapRazorPages();
 
@@ -253,7 +259,9 @@ app.MapRazorPages();
 app.MapAdditionalIdentityEndpoints();
 
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode()
+    .AddInteractiveWebAssemblyRenderMode()  // Interactive Auto サポート
+    .AddAdditionalAssemblies(typeof(BlazorServerChat2.Client._Imports).Assembly);  // Client アセンブリを追加
 
 app.Run();
 

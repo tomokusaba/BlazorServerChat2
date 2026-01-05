@@ -1,38 +1,83 @@
 ﻿@attribute [Authorize]
 @page "/neta"
-@using BlazorServerChat2.Data
+@rendermode InteractiveAuto
+@using BlazorServerChat2.Shared.Models
+@using System.Net.Http.Json
 
-@inject ApplicationDbContext DbContext
+@inject HttpClient Http
 
 <h3>ほのかさんのネタ帳追加</h3>
 
 <FluentTextField @bind-Value="@TextboxValue" />
-<FluentButton OnClick="@onclick" Text="追加" />
+<FluentButton OnClick="@AddNeta" Appearance="Appearance.Accent">追加</FluentButton>
+@if (isSaving)
+{
+    <FluentProgressRing Style="width: 20px; height: 20px;" />
+}
 <br />
 例）「はどこのプロ野球チームが好きなの？」と入れると「○○さんはどこのプロ野球チームが好きなの？」と質問してくれます。
-@if (NetaMastars != null)
+
+@if (isLoading)
 {
-    <FluentDataGrid Items=@NetaMastars.AsQueryable() >
-            <PropertyColumn Property="@(p => p.Neta)" Title="ほのかさんのネタ帳" />
+    <FluentProgressRing />
+}
+else if (netaMastars != null)
+{
+    <FluentDataGrid Items="@netaMastars.AsQueryable()">
+        <PropertyColumn Property="@(p => p.Neta)" Title="ほのかさんのネタ帳" />
     </FluentDataGrid>
 }
+
 @code {
-    string TextboxValue = string.Empty;
+    private string TextboxValue = string.Empty;
+    private List<NetaDto>? netaMastars;
+    private bool isLoading = true;
+    private bool isSaving = false;
 
-    IEnumerable<NetaMastar>? NetaMastars;
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        NetaMastars = DbContext.NetaMastar.ToList();
+        await LoadNetas();
     }
 
-    void onclick()
+    private async Task LoadNetas()
     {
-        NetaMastar neta = new NetaMastar();
-        neta.Neta = TextboxValue;
-        DbContext.Add(neta);
-        DbContext.SaveChanges();
-        TextboxValue = "";
-        NetaMastars = DbContext.NetaMastar.ToList();
+        try
+        {
+            isLoading = true;
+            netaMastars = await Http.GetFromJsonAsync<List<NetaDto>>("/api/neta");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading netas: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task AddNeta()
+    {
+        if (string.IsNullOrWhiteSpace(TextboxValue))
+            return;
+
+        try
+        {
+            isSaving = true;
+            var response = await Http.PostAsJsonAsync("/api/neta", new { Neta = TextboxValue });
+            if (response.IsSuccessStatusCode)
+            {
+                TextboxValue = string.Empty;
+                await LoadNetas();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding neta: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
     }
 }
