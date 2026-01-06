@@ -118,8 +118,8 @@
                             </FluentGridItem>
                             <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="@($"{item.NoticeStyle}border-bottom-right-radius:10px;border-top-right-radius:10px;")">
                                 <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
-                                    <FluentLabel Typo="Typography.Body">@((MarkupString)item.Body)</FluentLabel>
-                                    <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
+                                    <FluentLabel Typo="Typography.Body" Style="@($"color:{item.NoticeTextColor};")">@((MarkupString)item.Body)</FluentLabel>
+                                    <FluentLabel Typo="Typography.Body" Style="@($"color:{item.NoticeTextColor};")">@item.PostTime.ToString()</FluentLabel>
                                 </FluentStack>
                             </FluentGridItem>
                         </FluentGrid>
@@ -662,24 +662,32 @@
         public bool IsAiAgent => IsHonoka || IsMizuki || IsSystem;
         public bool IsNotice => IsAiAgent || Body.StartsWith("[ほのか]") || Body.StartsWith("[みずき]");
 
+        /// <summary>
+        /// エージェントメッセージの背景色（Fluent UIカラートークン使用、ダークモード対応）
+        /// </summary>
         public string NoticeBackgroundColor
         {
             get
             {
-                if (IsHonoka) return "#ffe4ec";
-                if (IsMizuki) return "#e4ecff";
-                if (IsSystem) return "#fff3cd";
+                // Fluent UIのカラートークンを使用
+                if (IsHonoka) return "color-mix(in srgb, var(--accent-fill-rest) 15%, var(--neutral-layer-1))"; // ほのか: 薄いアクセント色
+                if (IsMizuki) return "var(--neutral-layer-3)";       // みずき: ニュートラル
+                if (IsSystem) return "var(--warning-fill-rest, var(--neutral-layer-floating))"; // システム
                 return "var(--neutral-layer-2)";
             }
         }
 
+        /// <summary>
+        /// エージェントメッセージのテキスト色（Fluent UIカラートークン使用、ダークモード対応）
+        /// </summary>
         public string NoticeTextColor
         {
             get
             {
-                if (IsHonoka) return "#8b2252";
-                if (IsMizuki) return "#2c3e7a";
-                if (IsSystem) return "#856404";
+                // Fluent UIの前景色トークンを使用
+                if (IsHonoka) return "var(--accent-foreground-rest)"; // アクセント色のテキスト
+                if (IsMizuki) return "var(--neutral-foreground-rest)";  // 標準テキスト色
+                if (IsSystem) return "var(--neutral-foreground-hint)";  // 控えめなテキスト色
                 return "var(--neutral-foreground-rest)";
             }
         }
@@ -687,9 +695,9 @@
         public string NoticeStyle => $"background-color:{NoticeBackgroundColor};color:{NoticeTextColor};padding:8px;";
         
         /// <summary>
-        /// ユーザーメッセージの背景色
+        /// ユーザーメッセージの背景色（Fluent UIカラートークン使用、ダークモード対応）
         /// </summary>
-        public string UserBackgroundColor => Mine ? "#e3f2fd" : "var(--neutral-layer-2)";
+        public string UserBackgroundColor => Mine ? "var(--neutral-layer-4)" : "var(--neutral-layer-2)";
         
         /// <summary>
         /// 表示用スタイル

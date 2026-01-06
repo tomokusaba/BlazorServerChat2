@@ -820,37 +820,37 @@
         public bool IsMizuki => Body.StartsWith("[みずき]");
 
         /// <summary>
-        /// 管理人発言用の背景色（ダークモード対応）
+        /// エージェント発言用の背景色（Fluent UIカラートークン使用、ダークモード対応）
         /// </summary>
         public string NoticeBackgroundColor
         {
             get
             {
                 if (IsHonoka)
-                    return MainLayout.DarkMode ? "#5a2035" : "#ffe4ec";
+                    return "color-mix(in srgb, var(--accent-fill-rest) 15%, var(--neutral-layer-1))"; // ほのか: 薄いアクセント色
                 if (IsMizuki)
-                    return MainLayout.DarkMode ? "#1a2a50" : "#e4ecff";
+                    return "var(--neutral-layer-3)";       // みずき: ニュートラル
                 return "var(--neutral-layer-2)";
             }
         }
 
         /// <summary>
-        /// 管理人発言用のテキスト色（ダークモード対応）
+        /// エージェント発言用のテキスト色（Fluent UIカラートークン使用、ダークモード対応）
         /// </summary>
         public string NoticeTextColor
         {
             get
             {
                 if (IsHonoka)
-                    return MainLayout.DarkMode ? "#ffb8cc" : "#8b2252";
+                    return "var(--accent-foreground-rest)"; // アクセント色のテキスト
                 if (IsMizuki)
-                    return MainLayout.DarkMode ? "#b8ccff" : "#2c3e7a";
+                    return "var(--neutral-foreground-rest)";  // 標準テキスト色
                 return "var(--neutral-foreground-rest)";
             }
         }
 
         /// <summary>
-        /// 管理人発言用のスタイル（背景色＋テキスト色）
+        /// エージェント発言用のスタイル（背景色＋テキスト色）
         /// </summary>
         public string NoticeStyle => $"background-color:{NoticeBackgroundColor};color:{NoticeTextColor};";
 
