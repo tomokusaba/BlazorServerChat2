@@ -1,8 +1,14 @@
 @page "/api-test"
 @rendermode InteractiveAuto
 @using BlazorServerChat2.Shared.Models
+@using BlazorServerChat2.Client
+@using BlazorServerChat2.Services
 @using System.Net.Http.Json
+@using System.Runtime.InteropServices
+@using Microsoft.AspNetCore.Components.WebAssembly.Http
 @inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject AuthenticatedHttpClientFactory? AuthHttpFactory
 
 <PageTitle>API テスト</PageTitle>
 
@@ -80,6 +86,13 @@
     }
 </div>
 
+<div style="margin-top: 20px; padding: 10px; background-color: #e3f2fd; border-radius: 5px;">
+    <h4>🔧 デバッグ情報</h4>
+    <p><strong>実行環境:</strong> @_debugEnvironment</p>
+    <p><strong>BaseUri:</strong> @NavigationManager.BaseUri</p>
+    <p><strong>最後のリクエストURL:</strong> @_debugLastUrl</p>
+</div>
+
 @if (!string.IsNullOrEmpty(errorMessage))
 {
     <div style="background-color: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin-top: 20px;">
@@ -93,17 +106,68 @@
     private OsaifuDto? osaifu;
     private List<IconDto>? icons;
     private string? errorMessage;
+    private string? requestUrl; // デバッグ用
+    private string _debugEnvironment = "不明";
+    private string _debugLastUrl = "";
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            bool isWasm = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
+            _debugEnvironment = isWasm ? "WASM (ブラウザ)" : "Server";
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// APIパスをベースパス対応に変換（IISサブアプリケーション対応）
+    /// </summary>
+    private string ToApiPath(string relativePath)
+    {
+        var baseUri = NavigationManager.BaseUri.TrimEnd('/');
+        return $"{baseUri}{relativePath}";
+    }
+
+    /// <summary>
+    /// 認証付きGETリクエスト（WASM/Server両対応）
+    /// </summary>
+    private async Task<T?> GetAuthenticatedAsync<T>(string relativePath)
+    {
+        bool isWasm = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
+        _debugEnvironment = isWasm ? "WASM (ブラウザ)" : "Server";
+        _debugLastUrl = ToApiPath(relativePath);
+        
+        if (isWasm)
+        {
+            // WASM: BrowserRequestCredentialsを使って認証Cookie付きリクエスト
+            return await Http.GetWithCredentialsAsync<T>(_debugLastUrl);
+        }
+        else if (AuthHttpFactory != null)
+        {
+            // Server: AuthenticatedHttpClientFactoryを使用
+            var authClient = AuthHttpFactory.CreateAuthenticatedClient();
+            authClient.BaseAddress = new Uri(NavigationManager.BaseUri);
+            _debugLastUrl = relativePath.TrimStart('/');
+            return await authClient.GetFromJsonAsync<T>(_debugLastUrl);
+        }
+        
+        return default;
+    }
 
     private async Task LoadRoomStatus()
     {
         try
         {
             errorMessage = null;
-            roomStatus = await Http.GetFromJsonAsync<RoomStatusDto>("/api/chat/room-status");
+            requestUrl = ToApiPath("/api/chat/room-status");
+            Console.WriteLine($"Requesting: {requestUrl}");
+            // ルームステータスは認証不要
+            roomStatus = await Http.GetFromJsonAsync<RoomStatusDto>(requestUrl);
         }
         catch (Exception ex)
         {
-            errorMessage = $"ルームステータス取得エラー: {ex.Message}";
+            errorMessage = $"ルームステータス取得エラー: {ex.Message} (URL: {requestUrl})";
         }
     }
 
@@ -112,7 +176,8 @@
         try
         {
             errorMessage = null;
-            chats = await Http.GetFromJsonAsync<List<ChatDto>>("/api/chat");
+            // チャットは認証必要
+            chats = await GetAuthenticatedAsync<List<ChatDto>>("/api/chat");
         }
         catch (Exception ex)
         {
@@ -125,7 +190,8 @@
         try
         {
             errorMessage = null;
-            osaifu = await Http.GetFromJsonAsync<OsaifuDto>("/api/osaifu");
+            // お財布は認証必要
+            osaifu = await GetAuthenticatedAsync<OsaifuDto>("/api/osaifu");
         }
         catch (Exception ex)
         {
@@ -138,7 +204,8 @@
         try
         {
             errorMessage = null;
-            icons = await Http.GetFromJsonAsync<List<IconDto>>("/api/usersettings/icons");
+            // アイコンは認証不要
+            icons = await Http.GetFromJsonAsync<List<IconDto>>(ToApiPath("/api/usersettings/icons"));
         }
         catch (Exception ex)
         {

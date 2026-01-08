@@ -569,15 +569,15 @@
     {
         if (_isChatting && !string.IsNullOrWhiteSpace(message))
         {
-            // 残高チェック（1000円必要）
+            // 残高チェック（500円必要）
             var currentOsaifu = DbContext.Osaifus.Find(_username);
             int currentBalance = currentOsaifu?.Kingaku ?? 0;
-            if (currentBalance < 1000)
+            if (currentBalance < 500)
             {
                 // 残高不足メッセージを表示
                 Chat errorChat = new Chat();
                 errorChat.Name = _username ?? string.Empty;
-                errorChat.Message = $"[ほのか] : {_username}さん、ごめんね！残高が足りないみたい…💸 私とお話するには1,000円必要だよ！（現在: {currentBalance:N0}円）";
+                errorChat.Message = $"[ほのか] : {_username}さん、ごめんね！残高が足りないみたい…💸 私とお話するには500円必要だよ！（現在: {currentBalance:N0}円）";
                 errorChat.UserId = UserId ?? string.Empty;
                 DbContext.Chats.Add(errorChat);
                 DbContext.SaveChanges();
@@ -598,15 +598,15 @@
             var osaifu = DbContext.Osaifus.Find(_username);
             if (osaifu != null)
             {
-                osaifu.Kingaku = osaifu.Kingaku - 1000;  // ほのかに話しかけると1000円消費
+                osaifu.Kingaku = osaifu.Kingaku - 500;  // ほのかに話しかけると500円消費
                 Kingaku = osaifu.Kingaku;
             }
             else
             {
-                osaifu1.Kingaku = -1000;  // 新規ユーザーは-1000円からスタート
+                osaifu1.Kingaku = -500;  // 新規ユーザーは-500円からスタート
                 osaifu1.Name = _username;
                 DbContext.Add(osaifu1);
-                Kingaku = -1000;
+                Kingaku = -500;
             }
             DbContext.SaveChanges();
             Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);
@@ -643,15 +643,15 @@
     {
         if (_isChatting && !string.IsNullOrWhiteSpace(message))
         {
-            // 残高チェック（2000円必要）
+            // 残高チェック（1000円必要 - 二人と話すとお得！）
             var currentOsaifu = DbContext.Osaifus.Find(_username);
             int currentBalance = currentOsaifu?.Kingaku ?? 0;
-            if (currentBalance < 2000)
+            if (currentBalance < 1000)
             {
                 // 残高不足メッセージを表示
                 Chat errorChat = new Chat();
                 errorChat.Name = _username ?? string.Empty;
-                errorChat.Message = $"[ほのか] : {_username}さん、グループチャットは贅沢なの！👑 私とみずきちゃん両方とお話するには2,000円必要だよ！（現在: {currentBalance:N0}円）";
+                errorChat.Message = $"[ほのか] : {_username}さん、グループチャットはお得だよ！👑 私とみずきちゃん両方とお話するには1,000円だけでいいの！（現在: {currentBalance:N0}円）";
                 errorChat.UserId = UserId ?? string.Empty;
                 DbContext.Chats.Add(errorChat);
                 DbContext.SaveChanges();
@@ -673,15 +673,15 @@
             var osaifu = DbContext.Osaifus.Find(_username);
             if (osaifu != null)
             {
-                osaifu.Kingaku = osaifu.Kingaku - 2000;  // グループチャット（ほのか＋みずき）は2000円消費
+                osaifu.Kingaku = osaifu.Kingaku - 1000;  // グループチャット（ほのか＋みずき）は1000円消費 - お得！
                 Kingaku = osaifu.Kingaku;
             }
             else
             {
-                osaifu1.Kingaku = -2000;  // 新規ユーザーは-2000円からスタート
+                osaifu1.Kingaku = -1000;  // 新規ユーザーは-1000円からスタート
                 osaifu1.Name = _username;
                 DbContext.Add(osaifu1);
-                Kingaku = -2000;
+                Kingaku = -1000;
             }
             DbContext.SaveChanges();
             Message message1 = new Message(_username ?? string.Empty, message, true, UserId ?? string.Empty);

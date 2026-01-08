@@ -38,18 +38,18 @@ public class AiController(
 
         try
         {
-            // 残高チェック（1000円必要）
+            // 残高チェック（500円必要）
             var osaifu = await context.Osaifus
                 .Where(o => o.Name == userName)
                 .FirstOrDefaultAsync();
 
             var currentBalance = osaifu?.Kingaku ?? 0;
-            if (currentBalance < 1000)
+            if (currentBalance < 500)
             {
                 return BadRequest(new AiChatResponse
                 {
                     Success = false,
-                    ErrorMessage = $"残高不足です（現在: {currentBalance}円、必要: 1000円）"
+                    ErrorMessage = $"残高不足です（現在: {currentBalance}円、必要: 500円）"
                 });
             }
 
@@ -71,10 +71,10 @@ public class AiController(
             await hubContext.Clients.All.SendAsync("AiMessageReceived", "ほのか", response, aiChat.Time);
             logger.LogInformation("AI response saved and broadcast: {Response}", response);
 
-            // 残高を減らす
+            // 残高を減らす（500円消費）
             if (osaifu != null)
             {
-                osaifu.Kingaku -= 1000;
+                osaifu.Kingaku -= 500;
                 await context.SaveChangesAsync();
             }
 
@@ -114,18 +114,18 @@ public class AiController(
 
         try
         {
-            // 残高チェック（2000円必要）
+            // 残高チェック（1000円必要）
             var osaifu = await context.Osaifus
                 .Where(o => o.Name == userName)
                 .FirstOrDefaultAsync();
 
             var currentBalance = osaifu?.Kingaku ?? 0;
-            if (currentBalance < 2000)
+            if (currentBalance < 1000)
             {
                 return BadRequest(new AiChatResponse
                 {
                     Success = false,
-                    ErrorMessage = $"残高不足です（現在: {currentBalance}円、必要: 2000円）"
+                    ErrorMessage = $"残高不足です（現在: {currentBalance}円、必要: 1000円）"
                 });
             }
 
@@ -154,10 +154,10 @@ public class AiController(
                 await Task.Delay(100);
             });
 
-            // 残高を減らす
+            // 残高を減らす（1000円消費 - 二人と話すとお得！）
             if (osaifu != null)
             {
-                osaifu.Kingaku -= 2000;
+                osaifu.Kingaku -= 1000;
                 await context.SaveChangesAsync();
             }
 

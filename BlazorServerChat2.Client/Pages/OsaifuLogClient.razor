@@ -1,0 +1,71 @@
+@* お財布リストページ - クライアントコンポーネント 💰 *@
+@using BlazorServerChat2.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Http
+@using System.Net.Http.Json
+@using System.Net.Http.Headers
+@using System.Runtime.InteropServices
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<FluentLabel Typo="Typography.PageTitle">お財布リスト</FluentLabel>
+<FluentBadge Appearance="Appearance.Neutral">@(_isWasm ? "WASM 🌐" : "Server 🖥️")</FluentBadge>
+
+@if (isLoading)
+{
+    <FluentProgressRing />
+}
+else if (osaifus != null)
+{
+    <FluentDataGrid Items="@osaifus.AsQueryable()">
+        <PropertyColumn Property="@(p => p.Name)" Title="名前" />
+        <PropertyColumn Property="@(p => p.Kingaku)" Title="金額" />
+    </FluentDataGrid>
+}
+
+@code {
+    [Parameter] public string? InitialJwtToken { get; set; }
+
+    private List<OsaifuDto>? osaifus;
+    private bool isLoading = true;
+    private bool _isWasm = false;
+    private string? _jwtToken;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isWasm = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
+        _jwtToken = InitialJwtToken;
+
+        try
+        {
+            osaifus = await GetWithJwtAsync<List<OsaifuDto>>(ToApiPath("/api/osaifu-list"));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading osaifus: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string ToApiPath(string relativePath)
+    {
+        var baseUri = NavigationManager.BaseUri.TrimEnd('/');
+        return $"{baseUri}{relativePath}";
+    }
+
+    private async Task<T?> GetWithJwtAsync<T>(string requestUri)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        if (!string.IsNullOrEmpty(_jwtToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+        }
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        var response = await Http.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>();
+    }
+}

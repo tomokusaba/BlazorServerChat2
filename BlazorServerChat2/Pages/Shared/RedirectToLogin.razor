@@ -1,11 +1,25 @@
 ﻿@inject NavigationManager NavigationManager
+@inject IHttpContextAccessor HttpContextAccessor
 
 @code{
     [Parameter]
     public string? ReturnUrl { get; set; }
-    protected override void OnAfterRender(bool firstRender)
+    
+    protected override void OnInitialized()
     {
-        ReturnUrl = "~/" + ReturnUrl;
-        NavigationManager.NavigateTo($"Identity/Account/Login?returnUrl={ ReturnUrl}", forceLoad: true);
+        var encodedReturnUrl = Uri.EscapeDataString(ReturnUrl ?? string.Empty);
+        var loginUrl = $"Identity/Account/Login?returnUrl={encodedReturnUrl}";
+        
+        // 静的SSRではHTTPリダイレクトを使用
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext != null && !httpContext.Response.HasStarted)
+        {
+            httpContext.Response.Redirect(NavigationManager.ToAbsoluteUri(loginUrl).ToString());
+        }
+        else
+        {
+            // インタラクティブモードではNavigationManagerを使用
+            NavigationManager.NavigateTo(loginUrl, forceLoad: true);
+        }
     }
 }

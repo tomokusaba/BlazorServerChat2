@@ -1,0 +1,168 @@
+@* 設定ページ - クライアントコンポーネント ⚙️ *@
+@using BlazorServerChat2.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Http
+@using System.Net.Http.Json
+@using System.Net.Http.Headers
+@using System.Runtime.InteropServices
+@using Microsoft.FluentUI.AspNetCore.Components
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>あびや設定</PageTitle>
+
+<FluentLabel Typo="Typography.PageTitle">あびやアイコン設定</FluentLabel>
+<FluentBadge Appearance="Appearance.Neutral">@(_isWasm ? "WASM 🌐" : "Server 🖥️")</FluentBadge>
+
+@if (isLoading)
+{
+    <FluentProgressRing />
+}
+else
+{
+    <FluentStack Orientation="Orientation.Vertical" VerticalGap="20">
+        <FluentSelect TOption="IconDto" 
+                      Items="@iconMasters" 
+                      OptionValue="@(i => i.IconNumber.ToString())"
+                      OptionText="@(i => i.IconName)"
+                      @bind-SelectedOption="@selectedIcon"
+                      ValueChanged="@OnIconChanged"
+                      Label="アイコン選択" />
+        
+        @if (!string.IsNullOrEmpty(selectedIconBase64))
+        {
+            <img src="data:image/png;base64,@selectedIconBase64" style="max-width: 100px;" />
+        }
+        
+        <FluentTextField @bind-Value="@color" Label="背景色 (RGB形式)" Placeholder="rgb(0,0,0)" />
+        
+        <FluentButton Appearance="Appearance.Accent" OnClick="@SaveColor" Disabled="@isSaving">
+            @if (isSaving)
+            {
+                <FluentProgressRing Style="width: 16px; height: 16px;" />
+            }
+            保存
+        </FluentButton>
+    </FluentStack>
+}
+
+@code {
+    [Parameter] public string? InitialJwtToken { get; set; }
+
+    private List<IconDto>? iconMasters;
+    private IconDto? selectedIcon;
+    private int selectedIconNumber;
+    private string color = "rgb(0,0,0)";
+    private string? selectedIconBase64;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private bool _isWasm = false;
+    private string? _jwtToken;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isWasm = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
+        _jwtToken = InitialJwtToken;
+        
+        if (Http.BaseAddress == null)
+        {
+            Http.BaseAddress = new Uri(NavigationManager.BaseUri);
+        }
+
+        try
+        {
+            // アイコン一覧を取得
+            iconMasters = await GetWithJwtAsync<List<IconDto>>(ToApiPath("/api/usersettings/icons"));
+            
+            // 現在のユーザー設定を取得
+            var settings = await GetWithJwtAsync<UserChatSettingDto>(ToApiPath("/api/usersettings"));
+            if (settings != null)
+            {
+                selectedIconNumber = settings.IconNumber;
+                color = settings.BackGroundColor;
+                
+                // 選択中のアイコンを設定
+                selectedIcon = iconMasters?.FirstOrDefault(i => i.IconNumber == selectedIconNumber);
+                selectedIconBase64 = selectedIcon?.IconBase64;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading config: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnIconChanged(string? value)
+    {
+        if (int.TryParse(value, out var iconNumber))
+        {
+            selectedIconNumber = iconNumber;
+            selectedIcon = iconMasters?.FirstOrDefault(i => i.IconNumber == selectedIconNumber);
+            selectedIconBase64 = selectedIcon?.IconBase64;
+            await SaveSettings();
+        }
+    }
+
+    private async Task SaveColor()
+    {
+        await SaveSettings();
+    }
+
+    private async Task SaveSettings()
+    {
+        try
+        {
+            isSaving = true;
+            var request = new UserChatSettingDto
+            {
+                IconNumber = selectedIconNumber,
+                BackGroundColor = color
+            };
+            await PutWithJwtAsync(ToApiPath("/api/usersettings"), request);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving settings: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private string ToApiPath(string relativePath)
+    {
+        var baseUri = NavigationManager.BaseUri.TrimEnd('/');
+        return $"{baseUri}{relativePath}";
+    }
+
+    private async Task<T?> GetWithJwtAsync<T>(string requestUri)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        if (!string.IsNullOrEmpty(_jwtToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+        }
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        var response = await Http.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>();
+    }
+
+    private async Task PutWithJwtAsync<T>(string requestUri, T content)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Put, requestUri);
+        request.Content = JsonContent.Create(content);
+        if (!string.IsNullOrEmpty(_jwtToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+        }
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        var response = await Http.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+}

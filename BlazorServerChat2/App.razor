@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="_content/Radzen.Blazor/css/default-base.css">
     <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <!-- Fluent UI テーマフラッシュ防止 -->
+    <script src="_content/Microsoft.FluentUI.AspNetCore.Components/js/loading-theme.js" type="text/javascript"></script>
+    <loading-theme storage-name="theme"></loading-theme>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-176052338-2"></script>
     <ImportMap />
@@ -24,10 +27,15 @@
     </script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9638606265613636"
         crossorigin="anonymous"></script>
-    <HeadOutlet @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+    <HeadOutlet @rendermode="InteractiveAuto" />
 </head>
 <body style="height:100%">
-    <Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+    <!-- Fluent UI テーマ設定（HTML要素として配置、JSでlocalStorageから適用） -->
+    <fluent-design-theme primary-color="#185ABD" storage-name="theme"></fluent-design-theme>
+    
+    @* Routesはサーバーアセンブリにあるため、InteractiveAutoを指定しない *@
+    @* 個別ページで@rendermodeを指定する方式 *@
+    <Routes />
 
     <div id="blazor-error-ui">
         @if (Env.IsDevelopment())
@@ -48,7 +56,67 @@
 
     <script src="_framework/blazor.web.js" autostart="false"></script>
     <script>
+        // テーマ切り替え関数（ThemeSwitchコンポーネントから呼ばれる）
+        function toggleTheme(isDark) {
+            const mode = isDark ? 'dark' : 'light';
+            const themeJson = JSON.stringify({ mode: mode, primaryColor: '#185ABD' });
+            localStorage.setItem('theme', themeJson);
+            
+            const themeElement = document.querySelector('fluent-design-theme');
+            if (themeElement) {
+                themeElement.setAttribute('mode', mode);
+            }
+            
+            const label = document.getElementById('theme-label');
+            if (label) label.textContent = isDark ? '🌙 Dark' : '☀️ Light';
+        }
+        
+        // テーマスイッチを初期化
+        function initThemeSwitch() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                try {
+                    const theme = JSON.parse(savedTheme);
+                    const isDark = theme.mode === 'dark';
+                    const checkbox = document.getElementById('theme-toggle');
+                    const label = document.getElementById('theme-label');
+                    if (checkbox) checkbox.checked = isDark;
+                    if (label) label.textContent = isDark ? '🌙 Dark' : '☀️ Light';
+                } catch (e) {
+                    console.warn('Failed to parse theme:', e);
+                }
+            }
+        }
+        
+        // テーマをlocalStorageから適用する関数
+        function applyStoredTheme() {
+            try {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) {
+                    const theme = JSON.parse(savedTheme);
+                    const themeElement = document.querySelector('fluent-design-theme');
+                    if (themeElement && theme.mode) {
+                        themeElement.setAttribute('mode', theme.mode);
+                        if (theme.primaryColor) {
+                            themeElement.setAttribute('primary-color', theme.primaryColor);
+                        }
+                    }
+                }
+                // テーマスイッチの状態も更新
+                initThemeSwitch();
+            } catch (e) {
+                console.warn('Failed to apply stored theme:', e);
+            }
+        }
+
+        // ページ読み込み時にテーマを適用
+        applyStoredTheme();
+
+        // WASMキャッシュ状態を確認するためのログ
+        console.log('🚀 Blazor starting...');
+        
         Blazor.start({
+            // Server側の設定
             circuit: {
                 // SignalR接続設定（Microsoft Learn推奨）
                 configureSignalR: function (builder) {
@@ -59,7 +127,20 @@
                     maxRetries: 3000,
                     retryIntervalMilliseconds: 2000
                 }
+            },
+            // WebAssembly側の設定（InteractiveAuto用）🌐
+            webAssembly: {
+                loadBootResource: function (type, name, defaultUri, integrity) {
+                    console.log(`📦 WASM Loading: ${type} - ${name}`);
+                    return defaultUri;
+                }
             }
+        }).then(() => {
+            console.log('✅ Blazor started successfully');
+            // Blazor enhanced navigation後にテーマを再適用
+            Blazor.addEventListener('enhancedload', applyStoredTheme);
+        }).catch((err) => {
+            console.error('❌ Blazor start failed:', err);
         });
     </script>
 </body>

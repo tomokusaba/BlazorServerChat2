@@ -1,0 +1,778 @@
+@* クライアント用チャットコンポーネント（JWTトークンはパラメータで受け取る）*@
+@using BlazorServerChat2.Shared.Models
+@using BlazorServerChat2.Client
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.Http.Connections
+@using Microsoft.AspNetCore.Components.WebAssembly.Http
+@using Microsoft.AspNetCore.Components.Web
+@using System.Net.Http.Json
+@using System.Net.Http.Headers
+@using System.Runtime.InteropServices
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.FluentUI.AspNetCore.Components
+
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject IKeyCodeService keyCodeService
+@inject AuthenticationStateProvider? AuthStateProvider
+@implements IAsyncDisposable
+
+<PageTitle>あびや</PageTitle>
+<FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="20">
+    <FluentLabel Typo="Typography.PageTitle">あびやチャット</FluentLabel>
+    
+    <FluentCard Width="50%">
+        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" HorizontalGap="30">
+            <FluentCounterBadge Count="@Kingaku" Appearance="Appearance.Accent" Max="9000000">
+                <FluentButton>
+                    <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size24.PersonChat())" Color="@Color.Accent" />
+                </FluentButton>
+            </FluentCounterBadge>
+            <span>ログインユーザ： <b>@_username</b>さん</span>
+            <FluentBadge Appearance="Appearance.Neutral">@(_isWasm ? "WASM 🌐" : "Server 🖥️")</FluentBadge>
+            <FluentButton Appearance="Appearance.Neutral" OnClick="DisconnectAsync">退室</FluentButton>
+        </FluentStack><br />
+        <FluentAnchor Href="log" Appearance="Appearance.Hypertext">これまでのお話し</FluentAnchor><br />
+        <span>
+            たぶん　@roomStatus?.RoomCount 人在室中
+            @if (roomStatus?.RoomNames != null)
+            {
+                @foreach (var item in roomStatus.RoomNames)
+                {
+                    <span>@item さん　</span>
+                }
+            }
+        </span>
+    </FluentCard>
+
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Left">
+        <FluentGrid Style="width:100%">
+            <FluentGridItem xs="8" Style="align-items:center;display:flex;">
+                <FluentTextField @ref="fluentTextField"
+                                 AutoComplete="on"
+                                 Id="ChatComment"
+                                 Name="ChatComment"
+                                 TextFieldType="TextFieldType.Text"
+                                 style="width:80%;"
+                                 Placeholder="コメント入力欄"
+                                 Label="コメント入力"
+                                 AriaLabel="ここにチャットで発言するコメントを入力してください"
+                                 @bind-Value="_newMessage"
+                                 @onkeydown="HandleKeyDown">
+                </FluentTextField>&nbsp;
+            </FluentGridItem>
+            <FluentGridItem xs="4">
+                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="5">
+                    <FluentButton Appearance="Appearance.Accent" OnClick="@(s => SendAsync(_newMessage))" aria-label="発言するときはこのボタンを押してください" Disabled="@(!_isChatting)">発言</FluentButton>
+                    <FluentButton Appearance="Appearance.Neutral" OnClick="@(s => TalkHonoka(_newMessage))" Disabled="@(!_isChatting)">ほのかさんに話しかける</FluentButton>
+                    <FluentButton Appearance="Appearance.Outline" OnClick="@(s => TalkGroupChat(_newMessage))" Disabled="@(!_isChatting)">ほのか＆みずきと話す</FluentButton>
+                    <FluentButton Appearance="Appearance.Neutral" OnClick="NetaAsync" Disabled="@(!_isChatting)">ネタをもらう</FluentButton>
+                </FluentStack>
+                @if (!_isChatting)
+                {
+                    <FluentBadge Appearance="Appearance.Accent">SignalR接続中...</FluentBadge>
+                }
+            </FluentGridItem>
+        </FluentGrid>
+    </FluentStack>
+
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="20">
+        @if (_isLoadingHistory)
+        {
+            @for (int i = 0; i < 5; i++)
+            {
+                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalGap="10">
+                    <FluentGrid Style="width:100%">
+                        <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-2);border-bottom-left-radius:10px;border-top-left-radius:10px;padding:8px;">
+                            <FluentSkeleton Shape="SkeletonShape.Circle" Width="48px" Height="48px" Shimmer="true" />
+                        </FluentGridItem>
+                        <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-2);border-bottom-right-radius:10px;border-top-right-radius:10px;padding:8px;">
+                            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="8">
+                                <FluentSkeleton Shape="SkeletonShape.Rect" Width="60%" Height="20px" Shimmer="true" />
+                                <FluentSkeleton Shape="SkeletonShape.Rect" Width="80%" Height="16px" Shimmer="true" />
+                                <FluentSkeleton Shape="SkeletonShape.Rect" Width="30%" Height="14px" Shimmer="true" />
+                            </FluentStack>
+                        </FluentGridItem>
+                    </FluentGrid>
+                </FluentStack>
+                <FluentDivider Role="DividerRole.Presentation" />
+            }
+        }
+        else
+        {
+            @foreach (var item in _messages.OrderByDescending(x => x.PostTime))
+            {
+                @if (item.IsNotice)
+                {
+                    @* AIエージェント/システムメッセージ - 左寄せ、エージェントアイコン表示 *@
+                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal">
+                        <FluentGrid Style="width:100%">
+                            <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="@($"{item.NoticeStyle}border-bottom-left-radius:10px;border-top-left-radius:10px;")">
+                                @if (item.IsHonoka)
+                                {
+                                    <span style="font-size:48px;">💁‍♀️</span>
+                                }
+                                else if (item.IsMizuki)
+                                {
+                                    <span style="font-size:48px;">👩‍🏫</span>
+                                }
+                                else
+                                {
+                                    <FluentEmoji Value="@(new Microsoft.FluentUI.AspNetCore.Components.Emojis.Objects.Color.Default.BlackNib())" Width="64px" />
+                                }
+                            </FluentGridItem>
+                            <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="@($"{item.NoticeStyle}border-bottom-right-radius:10px;border-top-right-radius:10px;")">
+                                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
+                                    <FluentLabel Typo="Typography.Body" Style="@($"color:{item.NoticeTextColor};")">@((MarkupString)item.Body)</FluentLabel>
+                                    <FluentLabel Typo="Typography.Body" Style="@($"color:{item.NoticeTextColor};")">@item.PostTime.ToString()</FluentLabel>
+                                </FluentStack>
+                            </FluentGridItem>
+                        </FluentGrid>
+                    </FluentStack>
+                }
+                else
+                {
+                    @if (item.Mine)
+                    {
+                        @* 自分のメッセージ - 右寄せ、アイコン右側 *@
+                        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
+                                     VerticalAlignment="VerticalAlignment.Center"
+                                     HorizontalAlignment="HorizontalAlignment.Center">
+                            <FluentGrid Style="width:100%">
+                                <FluentGridItem lg="3" md="3" sm="3" xl="3" xs="3" xxl="3">
+                                </FluentGridItem>
+                                <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-4);border-bottom-left-radius:10px;border-top-left-radius:10px;">
+                                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
+                                        <FluentLabel Typo="Typography.Body" Color="Color.Accent">@item.Body</FluentLabel>
+                                        <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
+                                    </FluentStack>
+                                </FluentGridItem>
+                                <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-4);border-bottom-right-radius:10px;border-top-right-radius:10px;">
+                                    <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
+                                        <div>
+                                            @if (!string.IsNullOrEmpty(item.IconBase64))
+                                            {
+                                                <img src="data:image/png;base64,@item.IconBase64" />
+                                            }
+                                        </div>
+                                    </FluentStack>
+                                </FluentGridItem>
+                            </FluentGrid>
+                        </FluentStack>
+                    }
+                    else
+                    {
+                        @* 他人のメッセージ - 左寄せ、アイコン左側、Username表示 *@
+                        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
+                            <FluentGrid Style="width:100%">
+                                <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-2);border-bottom-left-radius:10px;border-top-left-radius:10px;">
+                                    <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
+                                        <div>
+                                            @if (!string.IsNullOrEmpty(item.IconBase64))
+                                            {
+                                                <img src="data:image/png;base64,@item.IconBase64" />
+                                            }
+                                        </div>
+                                    </FluentStack>
+                                </FluentGridItem>
+                                <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-2);border-bottom-right-radius:10px;border-top-right-radius:10px;">
+                                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
+                                        <FluentLabel Typo="Typography.Body">
+                                            @item.Username :
+                                            @item.Body
+                                        </FluentLabel>
+                                        <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
+                                    </FluentStack>
+                                </FluentGridItem>
+                            </FluentGrid>
+                        </FluentStack>
+                    }
+                }
+                <FluentDivider Role="DividerRole.Presentation" />
+            }
+        }
+    </FluentStack>
+</FluentStack>
+
+@code {
+    // パラメータ（サーバー側から受け取る）🔐
+    [Parameter] public string? InitialJwtToken { get; set; }
+    [Parameter] public string? InitialUserId { get; set; }
+    [Parameter] public string? InitialUserName { get; set; }
+
+    private HubConnection? _hubConnection;
+    private List<MessageDto> _messages = [];
+    private string? _username;
+    private string? _userId;
+    private string _newMessage = string.Empty;
+    private int Kingaku = 0;
+    private bool _isLoadingHistory = true;
+    private bool _isChatting = false;
+    private RoomStatusDto? roomStatus;
+    private FluentTextField? fluentTextField;
+    private Dictionary<string, string> _userIconCache = [];
+    private bool _initialized = false;
+    private bool _isWasm = false;
+    
+    // JWT認証用 🔐
+    private string? _jwtToken;
+    private DateTime _tokenExpiry = DateTime.MinValue;
+
+    /// <summary>
+    /// APIパスをベースパス対応に変換（IISサブアプリケーション対応）
+    /// </summary>
+    private string ToApiPath(string relativePath)
+    {
+        var baseUri = NavigationManager.BaseUri.TrimEnd('/');
+        return $"{baseUri}{relativePath}";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_initialized)
+        {
+            _initialized = true;
+            _isWasm = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
+            
+            Console.WriteLine($"IndexAutoClient: Starting on {(_isWasm ? "WASM 🌐" : "Server 🖥️")}");
+            
+            // パラメータからJWT情報を設定 🎫
+            _jwtToken = InitialJwtToken;
+            _userId = InitialUserId;
+            _username = InitialUserName;
+            _tokenExpiry = DateTime.UtcNow.AddMinutes(60);
+            
+            if (!string.IsNullOrEmpty(_jwtToken))
+            {
+                Console.WriteLine($"IndexAutoClient: JWT received from parent for {_username} 🎫");
+            }
+            else
+            {
+                // フォールバック: AuthStateProviderから取得
+                await LoadUserFromAuthStateAsync();
+            }
+            
+            await LoadInitialData();
+            Console.WriteLine($"IndexAutoClient: LoadInitialData completed. Messages count: {_messages.Count}");
+            await InitializeSignalR();
+            Console.WriteLine("IndexAutoClient: InitializeSignalR completed.");
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// AuthStateProviderからユーザー情報を取得（フォールバック）🔐
+    /// </summary>
+    private async Task LoadUserFromAuthStateAsync()
+    {
+        if (AuthStateProvider != null)
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                _username = user.Identity.Name ?? string.Empty;
+                _userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+                Console.WriteLine($"User from AuthState - Name: {_username}, Id: {_userId} 👤");
+            }
+        }
+    }
+
+    /// <summary>
+    /// JWT認証付きGETリクエスト 🔐
+    /// </summary>
+    private async Task<T?> GetWithJwtAsync<T>(string requestUri)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        
+        // JWT優先、なければCookie
+        if (!string.IsNullOrEmpty(_jwtToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+        }
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        
+        var response = await Http.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>();
+    }
+
+    /// <summary>
+    /// JWT認証付きPOSTリクエスト 🔐
+    /// </summary>
+    private async Task<TResponse?> PostWithJwtAsync<TResponse>(string requestUri, object content)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+        request.Content = JsonContent.Create(content);
+        
+        // JWT優先、なければCookie
+        if (!string.IsNullOrEmpty(_jwtToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+        }
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        
+        var response = await Http.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<TResponse>();
+    }
+
+    private async Task LoadInitialData()
+    {
+        try
+        {
+            // 認証不要のAPI
+            try
+            {
+                roomStatus = await Http.GetFromJsonAsync<RoomStatusDto>(ToApiPath("/api/chat/room-status"));
+                Console.WriteLine($"RoomStatus loaded - Count: {roomStatus?.RoomCount}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading room status: {ex.Message}");
+            }
+
+            // JWT認証付きAPI呼び出し 🔐
+            try
+            {
+                var osaifu = await GetWithJwtAsync<OsaifuDto>(ToApiPath("/api/osaifu"));
+                Console.WriteLine($"Osaifu loaded - Name: {osaifu?.Name}, Kingaku: {osaifu?.Kingaku}");
+                if (osaifu != null)
+                {
+                    Kingaku = osaifu.Kingaku;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading osaifu: {ex.Message}");
+            }
+
+            try
+            {
+                var chats = await GetWithJwtAsync<List<ChatDto>>(ToApiPath("/api/chat?pageSize=100"));
+                Console.WriteLine($"Chats loaded - Count: {chats?.Count ?? 0}");
+                await LoadChatMessages(chats);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading chats: {ex.Message}");
+            }
+
+            _isLoadingHistory = false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading initial data: {ex.Message}");
+            _isLoadingHistory = false;
+        }
+        
+        try
+        {
+            keyCodeService.RegisterListener(OnKeyDownAsync);
+        }
+        catch { /* プリレンダリング時は失敗する可能性あり */ }
+    }
+
+    private async Task LoadChatMessages(List<ChatDto>? chats)
+    {
+        if (chats != null && chats.Count > 0)
+        {
+            var userIds = chats.Select(c => c.UserId).Distinct().ToList();
+            foreach (var userId in userIds)
+            {
+                if (!string.IsNullOrEmpty(userId) && !_userIconCache.ContainsKey(userId))
+                {
+                    try
+                    {
+                        var icon = await Http.GetFromJsonAsync<IconDto>(ToApiPath($"/api/usersettings/icons/user/{userId}"));
+                        if (icon != null && !string.IsNullOrEmpty(icon.IconBase64))
+                        {
+                            _userIconCache[userId] = icon.IconBase64;
+                        }
+                    }
+                    catch { /* アイコン取得失敗は無視 */ }
+                }
+            }
+
+            foreach (var chat in chats)
+            {
+                var msg = new MessageDto(chat.Name, chat.Message, chat.Name == _username, chat.UserId ?? "")
+                {
+                    PostTime = chat.Time,
+                    IconBase64 = !string.IsNullOrEmpty(chat.UserId) ? _userIconCache.GetValueOrDefault(chat.UserId) : null
+                };
+                _messages.Add(msg);
+            }
+        }
+    }
+
+    private async Task InitializeSignalR()
+    {
+        try
+        {
+            string baseUrl = NavigationManager.BaseUri;
+            string hubUrl = baseUrl.TrimEnd('/') + "/chat";
+            
+            Console.WriteLine($"InitializeSignalR - hubUrl: {hubUrl}, isWasm: {_isWasm}, hasToken: {!string.IsNullOrEmpty(_jwtToken)}");
+
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl(hubUrl, options =>
+                {
+                    // JWT認証をSignalRにも適用 🔐
+                    if (!string.IsNullOrEmpty(_jwtToken))
+                    {
+                        options.AccessTokenProvider = () => Task.FromResult<string?>(_jwtToken);
+                    }
+                    
+                    // WASM/Server両方で同じ設定を使用（ネゴシエーションを有効にする）
+                    options.Transports = HttpTransportType.WebSockets |
+                                       HttpTransportType.ServerSentEvents |
+                                       HttpTransportType.LongPolling;
+                    options.SkipNegotiation = false;
+                })
+                .WithServerTimeout(TimeSpan.FromSeconds(60))
+                .WithKeepAliveInterval(TimeSpan.FromSeconds(15))
+                .WithAutomaticReconnect()
+                .Build();
+
+            _hubConnection.HandshakeTimeout = TimeSpan.FromSeconds(30);
+
+            _hubConnection.On<string, MessageDto>("Broadcast", (name, message) =>
+            {
+                bool isMine = name.Equals(_username, StringComparison.OrdinalIgnoreCase);
+                var msg = new MessageDto(name, message.Body, isMine, message.UserId)
+                {
+                    PostTime = message.PostTime,
+                    IconBase64 = _userIconCache.GetValueOrDefault(message.UserId)
+                };
+                _messages.Add(msg);
+                InvokeAsync(StateHasChanged);
+            });
+
+            _hubConnection.On<string, string, DateTime>("AiMessageReceived", (agentName, message, postTime) =>
+            {
+                Console.WriteLine($"AI message received from {agentName}: {message}");
+                
+                var aiMsg = new MessageDto(agentName, message, false, agentName == "ほのか" ? "AI_HONOKA" : "AI_MIZUKI")
+                {
+                    PostTime = postTime
+                };
+                _messages.Add(aiMsg);
+                InvokeAsync(StateHasChanged);
+            });
+
+            _hubConnection.Reconnecting += error =>
+            {
+                Console.WriteLine($"SignalR再接続中: {error?.Message}");
+                return Task.CompletedTask;
+            };
+
+            _hubConnection.Reconnected += connectionId =>
+            {
+                Console.WriteLine($"SignalR再接続完了: {connectionId}");
+                return Task.CompletedTask;
+            };
+
+            await _hubConnection.StartAsync();
+            _isChatting = true;
+
+            await SendWelcomeMessage();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"SignalR connection error: {ex.Message}");
+        }
+    }
+
+    private async Task SendWelcomeMessage()
+    {
+        try
+        {
+            var result = await PostWithJwtAsync<SendChatResponse>(ToApiPath("/api/chat/enter"), new { });
+
+            if (result?.Chat != null && _hubConnection != null)
+            {
+                var msg = new MessageDto(_username ?? "", result.Chat.Message, false, _userId ?? "")
+                {
+                    PostTime = result.Chat.Time
+                };
+                await _hubConnection.SendAsync("Broadcast", _username, msg);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Welcome message error: {ex.Message}");
+        }
+    }
+
+    private async Task SendAsync(string message, bool isSystem = false)
+    {
+        Console.WriteLine($"SendAsync called - _isChatting: {_isChatting}, message: '{message}'");
+        
+        if (_isChatting && !string.IsNullOrWhiteSpace(message))
+        {
+            if (message.StartsWith("[ほのか]") && !isSystem)
+            {
+                return;
+            }
+
+            try
+            {
+                var result = await PostWithJwtAsync<SendChatResponse>(ToApiPath("/api/chat/send"), new SendChatRequest { Message = message });
+
+                Console.WriteLine($"SendAsync - result: Success={result?.Success}, ChatTime={result?.Chat?.Time}");
+                if (result?.Success == true && result.Chat != null && _hubConnection != null)
+                {
+                    Kingaku = result.RemainingBalance;
+                    var msg = new MessageDto(_username ?? "", message, true, _userId ?? "")
+                    {
+                        PostTime = result.Chat.Time
+                    };
+                    await _hubConnection.SendAsync("Broadcast", _username, msg);
+                }
+                _newMessage = string.Empty;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Send error: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// ほのかさんに話しかける（API経由）💁‍♀️
+    /// </summary>
+    private async Task TalkHonoka(string message)
+    {
+        if (_isChatting && !string.IsNullOrWhiteSpace(message))
+        {
+            try
+            {
+                // ユーザーのメッセージを先に送信
+                var sendResult = await PostWithJwtAsync<SendChatResponse>(ToApiPath("/api/chat/send"), new SendChatRequest { Message = message });
+
+                if (sendResult?.Chat != null && _hubConnection != null)
+                {
+                    var userMsg = new MessageDto(_username ?? "", message, true, _userId ?? "")
+                    {
+                        PostTime = sendResult.Chat.Time
+                    };
+                    await _hubConnection.SendAsync("Broadcast", _username, userMsg);
+                }
+
+                // ほのかに話しかける（API経由）
+                var result = await PostWithJwtAsync<AiChatResponse>(ToApiPath("/api/ai/honoka"), new AiChatRequest { Message = message });
+
+                if (result?.Success == true)
+                {
+                    Kingaku = result.RemainingBalance;
+                }
+                else if (!string.IsNullOrEmpty(result?.ErrorMessage))
+                {
+                    var errorMsg = new MessageDto("システム", result.ErrorMessage, false, "SYSTEM")
+                    {
+                        PostTime = DateTime.Now
+                    };
+                    _messages.Add(errorMsg);
+                }
+                _newMessage = string.Empty;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"TalkHonoka error: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// グループチャット（API経由）👩‍🏫
+    /// </summary>
+    private async Task TalkGroupChat(string message)
+    {
+        if (_isChatting && !string.IsNullOrWhiteSpace(message))
+        {
+            try
+            {
+                // ユーザーのメッセージを先に送信
+                var sendResult = await PostWithJwtAsync<SendChatResponse>(ToApiPath("/api/chat/send"), new SendChatRequest { Message = message });
+
+                if (sendResult?.Chat != null && _hubConnection != null)
+                {
+                    var userMsg = new MessageDto(_username ?? "", message, true, _userId ?? "")
+                    {
+                        PostTime = sendResult.Chat.Time
+                    };
+                    await _hubConnection.SendAsync("Broadcast", _username, userMsg);
+                }
+
+                // グループチャット（API経由）
+                var result = await PostWithJwtAsync<AiChatResponse>(ToApiPath("/api/ai/group"), new GroupChatRequest { Message = message });
+
+                if (result?.Success == true)
+                {
+                    Kingaku = result.RemainingBalance;
+                }
+                else if (!string.IsNullOrEmpty(result?.ErrorMessage))
+                {
+                    var errorMsg = new MessageDto("システム", result.ErrorMessage, false, "SYSTEM")
+                    {
+                        PostTime = DateTime.Now
+                    };
+                    _messages.Add(errorMsg);
+                }
+                _newMessage = string.Empty;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"TalkGroupChat error: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// ネタをもらう 🎲
+    /// </summary>
+    private async Task NetaAsync()
+    {
+        try
+        {
+            var result = await PostWithJwtAsync<SendChatResponse>(ToApiPath("/api/chat/neta"), new { });
+            if (result?.Success == true && result.Chat != null && _hubConnection != null)
+            {
+                var msg = new MessageDto(_username ?? "", result.Chat.Message, false, _userId ?? "")
+                {
+                    PostTime = result.Chat.Time
+                };
+                await _hubConnection.SendAsync("Broadcast", _username, msg);
+            }
+            _newMessage = string.Empty;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Neta error: {ex.Message}");
+        }
+    }
+
+    private async Task OnKeyDownAsync(FluentKeyCodeEventArgs args)
+    {
+        if (args.Key == KeyCode.Enter)
+        {
+            await SendAsync(_newMessage);
+        }
+    }
+
+    /// <summary>
+    /// テキストフィールドのキーダウンイベントハンドラ（WASM対応）⌨️
+    /// </summary>
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            await SendAsync(_newMessage);
+        }
+    }
+
+    private async Task DisconnectAsync()
+    {
+        if (_isChatting)
+        {
+            await SendAsync($"[ほのか] {_username} さんいってらっしゃい", true);
+            
+            if (_hubConnection != null)
+            {
+                await _hubConnection.StopAsync();
+                await _hubConnection.DisposeAsync();
+                _hubConnection = null;
+            }
+            _isChatting = false;
+        }
+        NavigationManager.NavigateTo("./Exit");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        keyCodeService.UnregisterListener(OnKeyDownAsync);
+        if (_hubConnection != null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
+
+    // DTOクラス
+    public class TokenResponse
+    {
+        public string Token { get; set; } = string.Empty;
+        public DateTime ExpiresAt { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// メッセージDTO（クライアント用）
+    /// </summary>
+    public class MessageDto
+    {
+        public MessageDto(string username, string body, bool mine, string userid)
+        {
+            Username = username;
+            Body = body;
+            Mine = mine;
+            UserId = userid;
+        }
+
+        public string Username { get; set; }
+        public string Body { get; set; }
+        public bool Mine { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public DateTime PostTime { get; set; } = DateTime.Now;
+        public string? IconBase64 { get; set; }
+
+        public bool IsHonoka => Username == "ほのか" || Body.StartsWith("[ほのか]");
+        public bool IsMizuki => Username == "みずき" || Body.StartsWith("[みずき]");
+        public bool IsSystem => Username == "システム";
+        public bool IsAiAgent => IsHonoka || IsMizuki || IsSystem;
+        public bool IsNotice => IsAiAgent || Body.StartsWith("[ほのか]") || Body.StartsWith("[みずき]");
+
+        public string NoticeBackgroundColor
+        {
+            get
+            {
+                if (IsHonoka) return "color-mix(in srgb, var(--accent-fill-rest) 15%, var(--neutral-layer-1))";
+                if (IsMizuki) return "var(--neutral-layer-3)";
+                if (IsSystem) return "var(--warning-fill-rest, var(--neutral-layer-floating))";
+                return "var(--neutral-layer-2)";
+            }
+        }
+
+        public string NoticeTextColor
+        {
+            get
+            {
+                if (IsHonoka) return "var(--accent-foreground-rest)";
+                if (IsMizuki) return "var(--neutral-foreground-rest)";
+                if (IsSystem) return "var(--neutral-foreground-hint)";
+                return "var(--neutral-foreground-rest)";
+            }
+        }
+
+        public string NoticeStyle => $"background-color:{NoticeBackgroundColor};color:{NoticeTextColor};padding:8px;";
+        public string UserBackgroundColor => Mine ? "var(--neutral-layer-4)" : "var(--neutral-layer-2)";
+        public string DisplayStyle => IsNotice ? NoticeStyle : $"background-color:{UserBackgroundColor};padding:8px;";
+        public string CSS => Mine ? "sent" : "received";
+        
+        public string AgentIcon
+        {
+            get
+            {
+                if (IsHonoka) return "💁‍♀️";
+                if (IsMizuki) return "👩‍🏫";
+                if (IsSystem) return "⚙️";
+                return "👤";
+            }
+        }
+    }
+}

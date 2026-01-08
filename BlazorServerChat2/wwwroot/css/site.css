@@ -2,6 +2,11 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    color: var(--neutral-foreground-rest);
+    background: var(--neutral-fill-layer-rest);
 }
 
 h1:focus {

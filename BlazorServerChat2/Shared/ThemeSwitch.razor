@@ -1,0 +1,78 @@
+@* テーマスイッチ - 純粋なJSで動作（rendermodeを指定しないことでAutoモードのWASM移行を妨げない）*@
+@* CSSでスイッチ風デザインを実現 *@
+
+<style>
+    .theme-switch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        color: var(--foreground-on-accent-rest);
+        user-select: none;
+    }
+    
+    .theme-switch input {
+        display: none;
+    }
+    
+    .theme-switch .slider {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        transition: background-color 0.3s ease;
+    }
+    
+    .theme-switch .slider::before {
+        content: '';
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        left: 3px;
+        top: 3px;
+        background-color: white;
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .theme-switch input:checked + .slider {
+        background-color: var(--accent-fill-rest, #185ABD);
+    }
+    
+    .theme-switch input:checked + .slider::before {
+        transform: translateX(20px);
+    }
+    
+    .theme-switch:hover .slider {
+        background-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .theme-switch input:checked:hover + .slider {
+        background-color: var(--accent-fill-hover, #1a6fd4);
+    }
+</style>
+
+<label class="theme-switch">
+    <input type="checkbox" id="theme-toggle" onchange="toggleTheme(this.checked)" />
+    <span class="slider"></span>
+    <span id="theme-label">☀️ Light</span>
+</label>
+
+@* ページ読み込み/遷移時に即座にlocalStorageから状態を復元 *@
+<script>
+    (function() {
+        try {
+            var saved = localStorage.getItem('theme');
+            if (saved) {
+                var theme = JSON.parse(saved);
+                var isDark = theme.mode === 'dark';
+                var checkbox = document.getElementById('theme-toggle');
+                var label = document.getElementById('theme-label');
+                if (checkbox) checkbox.checked = isDark;
+                if (label) label.textContent = isDark ? '🌙 Dark' : '☀️ Light';
+            }
+        } catch (e) {}
+    })();
+</script>
