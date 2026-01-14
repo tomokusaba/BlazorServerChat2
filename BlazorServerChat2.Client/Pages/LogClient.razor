@@ -15,7 +15,19 @@
 {
     <FluentProgressRing />
 }
-else if (chats != null)
+else if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <FluentMessageBar Title="エラー" Intent="MessageIntent.Error">
+        @_errorMessage
+    </FluentMessageBar>
+}
+else if (chats == null || chats.Count == 0)
+{
+    <FluentMessageBar Title="情報" Intent="MessageIntent.Info">
+        ログデータがありません 📭
+    </FluentMessageBar>
+}
+else
 {
     <FluentDataGrid Items="@chats.AsQueryable()" GridTemplateColumns="0.5fr 0.5fr 2fr" MultiLine="true">
         <PropertyColumn Property="@(p => p.Time)" Format="yyyy/MM/dd HH:mm:ss" Title="投稿時刻" />
@@ -42,6 +54,7 @@ else if (chats != null)
     private bool isLoading = true;
     private bool _isWasm = false;
     private string? _jwtToken;
+    private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -50,11 +63,22 @@ else if (chats != null)
 
         try
         {
-            chats = await GetWithJwtAsync<List<ChatDto>>(ToApiPath("/api/chat"));
+            var apiPath = ToApiPath("/api/chat");
+            Console.WriteLine($"[LogClient] Fetching from: {apiPath}");
+            Console.WriteLine($"[LogClient] JWT Token exists: {!string.IsNullOrEmpty(_jwtToken)}");
+            
+            chats = await GetWithJwtAsync<List<ChatDto>>(apiPath);
+            Console.WriteLine($"[LogClient] Loaded {chats?.Count ?? 0} chats");
+        }
+        catch (HttpRequestException httpEx)
+        {
+            _errorMessage = $"API呼び出しエラー: {httpEx.StatusCode} - {httpEx.Message}";
+            Console.WriteLine($"[LogClient] HTTP Error: {httpEx.StatusCode} - {httpEx.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading chats: {ex.Message}");
+            _errorMessage = $"エラー: {ex.Message}";
+            Console.WriteLine($"[LogClient] Error loading chats: {ex.Message}");
         }
         finally
         {
