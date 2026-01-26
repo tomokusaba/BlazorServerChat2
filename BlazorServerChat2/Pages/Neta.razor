@@ -8,22 +8,22 @@
 
 <h3>ほのかさんのネタ帳追加</h3>
 
-<FluentTextField @bind-Value="@TextboxValue" />
-<FluentButton OnClick="@AddNeta" Appearance="Appearance.Accent">追加</FluentButton>
+<FluentTextField @bind-Value="@TextboxValue" Label="ネタ入力" Placeholder="ネタを入力" AriaLabel="ネタを入力" />
+<FluentButton OnClick="@AddNeta" Appearance="Appearance.Accent" AriaLabel="ネタを追加">追加</FluentButton>
 @if (isSaving)
 {
-    <FluentProgressRing Style="width: 20px; height: 20px;" />
+    <FluentProgressRing Style="width: 20px; height: 20px;" role="status" aria-label="保存中" />
 }
 <br />
 例）「はどこのプロ野球チームが好きなの？」と入れると「○○さんはどこのプロ野球チームが好きなの？」と質問してくれます。
 
 @if (isLoading)
 {
-    <FluentProgressRing />
+    <FluentProgressRing role="status" aria-label="読み込み中" />
 }
 else if (netaMastars != null)
 {
-    <FluentDataGrid Items="@netaMastars.AsQueryable()">
+    <FluentDataGrid Items="@netaMastars.AsQueryable()" aria-label="ネタ一覧">
         <PropertyColumn Property="@(p => p.Neta)" Title="ほのかさんのネタ帳" />
     </FluentDataGrid>
 }

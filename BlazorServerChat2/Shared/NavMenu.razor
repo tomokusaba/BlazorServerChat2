@@ -41,33 +41,39 @@
     </nav>
 </div>*@
 
-<FluentAppBar Style="height:100%">
+<FluentAppBar Style="height:100%" aria-label="メインメニュー" role="navigation">
     <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.Chat())"
                       IconActive="@(new Icons.Filled.Size24.Chat())"
                       Text="あびやチャット"
+                      Tooltip="あびやチャット"
                       Href="" />
 
     <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.PersonMoney())"
                       IconActive="@(new Icons.Filled.Size24.PersonMoney())"
                       Text="お財布リスト"
+                      Tooltip="お財布リスト"
                       Href="osaifu" />
     <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.Settings())"
                       IconActive="@(new Icons.Filled.Size24.Settings())"
                       Text="あびや設定"
+                      Tooltip="あびや設定"
                       Href="config" />
     @if (menu)
     {
         <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.CollectionsAdd())"
                           IconActive="@(new Icons.Filled.Size24.CollectionsAdd())"
                           Text="ネタ追加"
+                          Tooltip="ネタ追加"
                           Href="neta" />
         <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.Icons())"
                           IconActive="@(new Icons.Filled.Size24.Icons())"
                           Text="アイコンアップロード"
+                          Tooltip="アイコンアップロード"
                           Href="upload" />
         <FluentAppBarItem IconRest="@(new Icons.Regular.Size24.BrainCircuit())"
                           IconActive="@(new Icons.Filled.Size24.BrainCircuit())"
                           Text="APIテスト"
+                          Tooltip="APIテスト"
                           Href="api-test" />
     }
 </FluentAppBar>

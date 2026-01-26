@@ -13,11 +13,11 @@
 
 @if (isLoading)
 {
-    <FluentProgressRing />
+    <FluentProgressRing role="status" aria-label="読み込み中" />
 }
 else if (osaifus != null)
 {
-    <FluentDataGrid Items="@osaifus.AsQueryable()">
+    <FluentDataGrid Items="@osaifus.AsQueryable()" aria-label="お財布一覧">
         <PropertyColumn Property="@(p => p.Name)" Title="名前" />
         <PropertyColumn Property="@(p => p.Kingaku)" Title="金額" />
     </FluentDataGrid>

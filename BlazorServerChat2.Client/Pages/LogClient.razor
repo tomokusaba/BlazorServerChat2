@@ -13,7 +13,7 @@
 
 @if (isLoading)
 {
-    <FluentProgressRing />
+    <FluentProgressRing role="status" aria-label="読み込み中" />
 }
 else if (!string.IsNullOrEmpty(_errorMessage))
 {
@@ -29,7 +29,7 @@ else if (chats == null || chats.Count == 0)
 }
 else
 {
-    <FluentDataGrid Items="@chats.AsQueryable()" GridTemplateColumns="0.5fr 0.5fr 2fr" MultiLine="true">
+    <FluentDataGrid Items="@chats.AsQueryable()" GridTemplateColumns="0.5fr 0.5fr 2fr" MultiLine="true" aria-label="チャットログ一覧">
         <PropertyColumn Property="@(p => p.Time)" Format="yyyy/MM/dd HH:mm:ss" Title="投稿時刻" />
         <PropertyColumn Property="@(p => p.Name)" Title="名前" />
         <TemplateColumn Title="投稿内容">

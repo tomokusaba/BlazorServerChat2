@@ -37,7 +37,7 @@
     @* 個別ページで@rendermodeを指定する方式 *@
     <Routes />
 
-    <div id="blazor-error-ui">
+    <div id="blazor-error-ui" role="alert" aria-live="assertive">
         @if (Env.IsDevelopment())
         {
             <text>
@@ -50,8 +50,8 @@
                 An error has occurred. This app may no longer respond until reloaded.
             </text>
         }
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
+        <a href="" class="reload" aria-label="アプリを再読み込み">Reload</a>
+        <a class="dismiss" role="button" aria-label="エラー表示を閉じる" tabindex="0">🗙</a>
     </div>
 
     <script src="_framework/blazor.web.js" autostart="false"></script>

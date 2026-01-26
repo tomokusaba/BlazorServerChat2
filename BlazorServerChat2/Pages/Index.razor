@@ -14,6 +14,7 @@
 @using System.Text;
 @using ConsoleApp15;
 @using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager navigationManager
 @inject ApplicationDbContext DbContext
@@ -36,7 +37,7 @@
     Enter your name to start chatting:
     </p>
 
-    <input type="text" maxlength="32" @bind="@_username" />
+    <input type="text" maxlength="32" @bind="@_username" /> 
     <button type="button" @onclick="Chat"><span class="oi oi-chat" aria-hidden="true"></span> Chat!</button>
 
     // Error messages
@@ -52,14 +53,14 @@
     <FluentCard Width="50%">
         <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" HorizontalGap="30">
             <FluentCounterBadge Count="Kingaku" Appearance="Appearance.Accent" Max="9000000">
-                <FluentButton>
+                <FluentButton AriaLabel="ユーザー情報を表示">
                     <FluentIcon Value="@(new Icons.Regular.Size24.PersonChat())" Color="@Color.Accent" />
                 </FluentButton>
             </FluentCounterBadge>
             <span>ログインユーザ： <b>@_username</b>さん</span>
-            <FluentButton Appearance="Appearance.Neutral" OnClick="DisconnectAsync">退室</FluentButton>
+            <FluentButton Appearance="Appearance.Neutral" OnClick="DisconnectAsync" AriaLabel="チャットを退室する">退室</FluentButton>
         </FluentStack><br />
-        <FluentAnchor Href="log" Appearance="Appearance.Hypertext">これまでのお話し</FluentAnchor><br />
+        <FluentAnchor Href="log" Appearance="Appearance.Hypertext" AriaLabel="これまでのお話しを表示">これまでのお話し</FluentAnchor><br />
         <span>
             たぶん　@room.roomCount 人在室中
             @if (room.roomNames != null)
@@ -93,10 +94,10 @@
             </FluentGridItem>
             <FluentGridItem xs="4">
                 <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="5">
-                    <FluentButton Appearance="Appearance.Accent" OnClick="@(s =>SendAsync(_newMessage))" aria-label="発言するときはこのボタンを押してください">発言</FluentButton>
-                    <FluentButton @ref="honoka" Appearance="Appearance.Neutral" OnClick="@(s =>TalkGPT(_newMessage))">ほのかさんに話しかける</FluentButton>
-                    <FluentButton Appearance="Appearance.Outline" OnClick="@(s =>TalkGroupChat(_newMessage))">ほのか＆みずきと話す</FluentButton>
-                    <FluentButton Appearance="Appearance.Neutral" OnClick="NetaAsync">ネタをもらう</FluentButton>
+                    <FluentButton Appearance="Appearance.Accent" OnClick="@(s =>SendAsync(_newMessage))" AriaLabel="発言するときはこのボタンを押してください">発言</FluentButton>
+                    <FluentButton @ref="honoka" Appearance="Appearance.Neutral" OnClick="@(s =>TalkGPT(_newMessage))" AriaLabel="ほのかさんに話しかける">ほのかさんに話しかける</FluentButton>
+                    <FluentButton Appearance="Appearance.Neutral" OnClick="@(s =>TalkGroupChat(_newMessage))" AriaLabel="ほのかさんとみずきさんに話しかける">ほのか＆みずきと話す</FluentButton>
+                    <FluentButton Appearance="Appearance.Neutral" OnClick="NetaAsync" AriaLabel="ネタをもらう">ネタをもらう</FluentButton>
                 </FluentStack>
             </FluentGridItem>
         </FluentGrid>
@@ -152,11 +153,11 @@
                         <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="@($"{item.NoticeStyle}border-bottom-left-radius:10px;border-top-left-radius:10px;")">
                             @if (item.IsHonoka)
                             {
-                                <span style="font-size:48px;">💁‍♀️</span>
+                                <span style="font-size:48px;" role="img" aria-label="ほのか">💁‍♀️</span>
                             }
                             else if (item.IsMizuki)
                             {
-                                <span style="font-size:48px;">👩‍🏫</span>
+                                <span style="font-size:48px;" role="img" aria-label="みずき">👩‍🏫</span>
                             }
                             else
                             {
@@ -234,7 +235,7 @@
                                         }
                                         @if (!string.IsNullOrEmpty(myIconBase64))
                                         {
-                                            <img src="data:image/png;base64,@myIconBase64" />
+                                            <img src="data:image/png;base64,@myIconBase64" alt="@($"{_username ?? "ユーザー"} のアイコン")" />
                                         }
                                     </div>
                                 </FluentStack>
@@ -285,7 +286,7 @@
                                         }
                                         @if (!string.IsNullOrEmpty(otherIconBase64))
                                         {
-                                            <img src="data:image/png;base64,@otherIconBase64" />
+                                            <img src="data:image/png;base64,@otherIconBase64" alt="@($"{item.Username} のアイコン")" />
                                         }
                                     </div>
                                 </FluentStack>

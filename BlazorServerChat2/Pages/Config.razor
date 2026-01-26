@@ -18,11 +18,11 @@
 
 @if (isLoading)
 {
-    <FluentProgressRing />
+    <FluentProgressRing role="status" aria-label="読み込み中" />
 }
 else
 {
-    <RadzenDropDownDataGrid TValue="int" Data="@iconMasters" PageSize="15" Change="@(args => OnChange(args))" TextProperty="IconName" ValueProperty="IconNumber" Value="@selectedIconNumber">
+    <RadzenDropDownDataGrid TValue="int" Data="@iconMasters" PageSize="15" Change="@(args => OnChange(args))" TextProperty="IconName" ValueProperty="IconNumber" Value="@selectedIconNumber" aria-label="アイコン選択">
         <Columns>
             <RadzenDropDownDataGridColumn Property="IconName" />
         </Columns>
@@ -30,14 +30,14 @@ else
     @debug
     @if (!string.IsNullOrEmpty(selectedIconBase64))
     {
-        <img src="data:image/png;base64,@selectedIconBase64" />
+        <img src="data:image/png;base64,@selectedIconBase64" alt="選択中のアイコン" />
     }
-    <RadzenColorPicker @bind-Value="@color" />
+    <RadzenColorPicker @bind-Value="@color" aria-label="背景色の選択" />
 
-    <RadzenButton Text="保存" Click="@SaveColor" />
+    <RadzenButton Text="保存" Click="@SaveColor" aria-label="設定を保存" />
     @if (isSaving)
     {
-        <FluentProgressRing Style="width: 20px; height: 20px;" />
+        <FluentProgressRing Style="width: 20px; height: 20px;" role="status" aria-label="保存中" />
     }
 }
 

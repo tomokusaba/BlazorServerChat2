@@ -7,8 +7,9 @@
 @using BlazorServerChat2.Data
 @inject WeatherForecastService ForecastService
 <h1>アップロード</h1>
-<InputFile OnChange="@LoadFile" />
-@result
+<label for="icon-upload">アイコンファイル (PNG)</label>
+<InputFile id="icon-upload" OnChange="@LoadFile" accept="image/png" aria-label="アイコンファイルを選択" />
+<div role="status" aria-live="polite">@result</div>
 @code {
     string? result;
     private async Task LoadFile(InputFileChangeEventArgs e)

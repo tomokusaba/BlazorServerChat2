@@ -4,11 +4,11 @@
             @context.User.Identity?.Name　さん
         </FluentLabel>
         <form method="post" action="Identity/Account/LogOut">
-            <FluentButton type="ButtonType.Submit" Appearance="Appearance.Neutral">ログアウト</FluentButton>
+            <FluentButton type="ButtonType.Submit" Appearance="Appearance.Neutral" AriaLabel="ログアウト">ログアウト</FluentButton>
         </form>
     </Authorized>
     <NotAuthorized>
-        <FluentAnchor Href="Identity/Account/Register" Style="color: var(--foreground-on-accent-rest);">あびや登録</FluentAnchor>
-        <FluentAnchor Href="Identity/Account/Login" Style="color: var(--foreground-on-accent-rest);">ログイン</FluentAnchor>
+        <FluentAnchor Href="Identity/Account/Register" Style="color: var(--foreground-on-accent-rest);" AriaLabel="あびや登録">あびや登録</FluentAnchor>
+        <FluentAnchor Href="Identity/Account/Login" Style="color: var(--foreground-on-accent-rest);" AriaLabel="ログイン">ログイン</FluentAnchor>
     </NotAuthorized>
 </AuthorizeView>

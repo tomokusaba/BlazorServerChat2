@@ -16,30 +16,31 @@
 
 @if (isLoading)
 {
-    <FluentProgressRing />
+    <FluentProgressRing role="status" aria-label="読み込み中" />
 }
 else
 {
     <FluentStack Orientation="Orientation.Vertical" VerticalGap="20">
         <FluentSelect TOption="IconDto" 
-                      Items="@iconMasters" 
-                      OptionValue="@(i => i.IconNumber.ToString())"
-                      OptionText="@(i => i.IconName)"
-                      @bind-SelectedOption="@selectedIcon"
-                      ValueChanged="@OnIconChanged"
-                      Label="アイコン選択" />
+                  Items="@iconMasters" 
+                  OptionValue="@(i => i.IconNumber.ToString())"
+                  OptionText="@(i => i.IconName)"
+                  @bind-SelectedOption="@selectedIcon"
+                  ValueChanged="@OnIconChanged"
+                  Label="アイコン選択"
+                  AriaLabel="アイコン選択" />
         
         @if (!string.IsNullOrEmpty(selectedIconBase64))
         {
-            <img src="data:image/png;base64,@selectedIconBase64" style="max-width: 100px;" />
+            <img src="data:image/png;base64,@selectedIconBase64" style="max-width: 100px;" alt="選択中のアイコン" />
         }
         
-        <FluentTextField @bind-Value="@color" Label="背景色 (RGB形式)" Placeholder="rgb(0,0,0)" />
+        <FluentTextField @bind-Value="@color" Label="背景色 (RGB形式)" Placeholder="rgb(0,0,0)" AriaLabel="背景色の入力" />
         
-        <FluentButton Appearance="Appearance.Accent" OnClick="@SaveColor" Disabled="@isSaving">
+        <FluentButton Appearance="Appearance.Accent" OnClick="@SaveColor" Disabled="@isSaving" AriaLabel="設定を保存">
             @if (isSaving)
             {
-                <FluentProgressRing Style="width: 16px; height: 16px;" />
+                <FluentProgressRing Style="width: 16px; height: 16px;" role="status" aria-label="保存中" />
             }
             保存
         </FluentButton>
