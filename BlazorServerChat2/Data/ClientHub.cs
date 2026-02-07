@@ -18,8 +18,11 @@ namespace BlazorServerChat2.Data
         private string? _hubUrl;
         /// <summary>
         /// チャットのメッセージリスト
+        /// SignalRコールバックとBlazor回路スレッドの両方からアクセスされるため
+        /// _messagesLock で保護すること
         /// </summary>
         public List<Message> _messages = [];
+        private readonly object _messagesLock = new();
         private readonly AuthenticationStateProvider _authenticationStateProvider;
         private readonly NavigationManager _navigationManager;
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
@@ -157,6 +160,7 @@ namespace BlazorServerChat2.Data
         /// <summary>
         /// SignalRハブから呼び出されるメソッド
         /// 送られてきたメッセージを元に表示するメッセージリストに追加する
+        /// ※ SignalRコールバックはスレッドプールスレッドから実行されるためロックが必要
         /// </summary>
         /// <param name="name">送信元名前</param>
         /// <param name="message">メッセージ</param>
@@ -164,7 +168,10 @@ namespace BlazorServerChat2.Data
         {
             bool isMine = name.Equals(_username, StringComparison.OrdinalIgnoreCase);
 
-            _messages.Add(new Message(name, message.Body, isMine, message.UserId));
+            lock (_messagesLock)
+            {
+                _messages.Add(new Message(name, message.Body, isMine, message.UserId));
+            }
             Room = _room.room.Count;
             try
             {
@@ -173,6 +180,20 @@ namespace BlazorServerChat2.Data
             catch (Exception)
             {
                 // 通知失敗時は無視
+            }
+        }
+
+        /// <summary>
+        /// メッセージリストのスナップショットを取得（スレッドセーフ）
+        /// テンプレートのレンダリング時に使用することで、
+        /// SignalRコールバックとの競合を防止
+        /// </summary>
+        /// <returns>メッセージリストのコピー</returns>
+        public List<Message> GetMessagesSnapshot()
+        {
+            lock (_messagesLock)
+            {
+                return [.. _messages];
             }
         }
 

@@ -8,6 +8,7 @@
 @using BlazorServerChat2.Areas.Identity
 @using BlazorServerChat2.Data
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
 @using System.Security.Claims
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.Text.RegularExpressions;
@@ -126,7 +127,7 @@
         }
         else
         {
-            @foreach (var item in clientHub._messages.OrderByDescending(x => x.PostTime))
+            @foreach (var item in clientHub.GetMessagesSnapshot().OrderByDescending(x => x.PostTime))
         {
             @if (item.IsNotice)
             {
@@ -322,6 +323,9 @@
     // チャット履歴の読み込み中フラグ
     private bool _isLoadingHistory = true;
 
+    // SignalRハブ初期化済みフラグ（OnAfterRenderAsync の多重実行防止）
+    private bool _hubInitialized = false;
+
     // name of the user who will be chatting
     private string _username = string.Empty;
 
@@ -401,20 +405,24 @@
 
         try
         {
-            // Start chatting and force refresh UI.
             _isChatting = true;
-            await Task.Delay(1);
 
             // remove old messages if any
             clientHub._messages.Clear();
 
-            var context = DbContext.Chats.OrderByDescending(x => x.Time).Take(100);
+            // ToList() で即時具体化し、IQueryable の二重列挙を防止
+            // AsNoTracking() で長寿命の DbContext でのエンティティ追跡を回避
+            var chats = DbContext.Chats
+                .OrderByDescending(x => x.Time)
+                .Take(100)
+                .AsNoTracking()
+                .ToList();
 
             // 過去ログのユーザーIDを収集してユーザー名を一括ロード
-            var userIds = context.Select(c => c.UserId).Distinct().ToList();
+            var userIds = chats.Select(c => c.UserId).Distinct().ToList();
             await userChatSettingCache.LoadUserNamesAsync(userIds);
 
-            foreach (Chat chat in context)
+            foreach (Chat chat in chats)
             {
                 bool isMine = chat.Name.Equals(_username, StringComparison.OrdinalIgnoreCase);
                 Message message = new Message(chat.Name, chat.Message, isMine, chat.UserId);
@@ -437,6 +445,7 @@
         {
             _message = $"ERROR: Failed to start chat client: {e.Message}";
             _isChatting = false;
+            _isLoadingHistory = false; // エラー時もスケルトン表示を解除
         }
 
     }
@@ -450,14 +459,21 @@
 
     /// <summary>
     /// SignalRハブに接続処理
-    /// 入室メッセージ送信
+    /// チャット履歴の読み込みが完了してからSignalRハブに接続する
+    /// これにより、BroadcastMessageコールバックと_messages操作の競合を防止
     /// </summary>
     /// <param name="firstRender"></param>
     /// <returns></returns>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
-        await clientHub.InitIndexPage();
+        // データ読み込み完了後に一度だけSignalRハブに接続
+        // _isLoadingHistory == false: チャット履歴のDB読み込みが完了済み
+        // !_hubInitialized: 重複接続を防止
+        if (!_hubInitialized && !_isLoadingHistory)
+        {
+            _hubInitialized = true;
+            await clientHub.InitIndexPage();
+        }
     }
 
     /// <summary>
@@ -470,8 +486,8 @@
     {
         bool isMine = name.Equals(_username, StringComparison.OrdinalIgnoreCase);
 
-        clientHub._messages.Add(new Message(name, message.Body, isMine, message.UserId));
-
+        // ClientHub 側の BroadcastMessage がコールバックとして登録されているため
+        // このページ側の BroadcastMessage は現在未使用だが、互換性のため残す
 
         // Inform blazor the UI needs updating
         StateHasChanged();
