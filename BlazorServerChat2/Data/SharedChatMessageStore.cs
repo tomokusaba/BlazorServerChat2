@@ -9,10 +9,10 @@ namespace BlazorServerChat2.Data;
 /// 通常チャットとグループチャットで履歴を共有できるようにする
 /// </summary>
 /// <remarks>
-/// Agent Frameworkの ChatMessageStore を継承して実装
-/// AddMessagesAsync/GetMessagesAsync で履歴の追加・取得を行う
+/// Agent Frameworkの ChatHistoryProvider を継承して実装
+/// InvokingAsync/InvokedAsync で履歴の取得・追加を行う
 /// </remarks>
-public sealed class SharedChatMessageStore : ChatMessageStore
+public sealed class SharedChatMessageStore : ChatHistoryProvider
 {
     private readonly List<ChatMessageRecord> _messages = [];
     private readonly object _lock = new();
@@ -48,15 +48,26 @@ public sealed class SharedChatMessageStore : ChatMessageStore
     public string ThreadKey => _threadKey ?? throw new InvalidOperationException("ThreadKey is not initialized");
 
     /// <summary>
-    /// メッセージを履歴に追加する
+    /// エージェント実行後にリクエスト/レスポンスメッセージを履歴に追加する
     /// </summary>
-    public override Task AddMessagesAsync(
-        IEnumerable<ChatMessage> messages,
+    public override ValueTask InvokedAsync(
+        ChatHistoryProvider.InvokedContext context,
         CancellationToken cancellationToken = default)
     {
         lock (_lock)
         {
-            foreach (var message in messages)
+            // リクエストメッセージを追加
+            foreach (var message in context.RequestMessages)
+            {
+                _messages.Add(new ChatMessageRecord
+                {
+                    Id = Guid.NewGuid().ToString("N"),
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Message = message
+                });
+            }
+            // レスポンスメッセージを追加
+            foreach (var message in context.ResponseMessages)
             {
                 _messages.Add(new ChatMessageRecord
                 {
@@ -66,7 +77,7 @@ public sealed class SharedChatMessageStore : ChatMessageStore
                 });
             }
         }
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>
@@ -88,9 +99,10 @@ public sealed class SharedChatMessageStore : ChatMessageStore
     }
 
     /// <summary>
-    /// 履歴からメッセージを取得する（昇順で返す）
+    /// エージェント実行前に履歴メッセージを取得する（昇順で返す）
     /// </summary>
-    public override Task<IEnumerable<ChatMessage>> GetMessagesAsync(
+    public override ValueTask<IEnumerable<ChatMessage>> InvokingAsync(
+        ChatHistoryProvider.InvokingContext context,
         CancellationToken cancellationToken = default)
     {
         lock (_lock)
@@ -103,7 +115,7 @@ public sealed class SharedChatMessageStore : ChatMessageStore
                 .Select(x => x.Message)
                 .ToList();
 
-            return Task.FromResult<IEnumerable<ChatMessage>>(result);
+            return ValueTask.FromResult<IEnumerable<ChatMessage>>(result);
         }
     }
 

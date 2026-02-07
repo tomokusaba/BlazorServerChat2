@@ -14,7 +14,6 @@
 @using System.Text;
 @using ConsoleApp15;
 @using Microsoft.FluentUI.AspNetCore.Components
-@using Microsoft.FluentUI.AspNetCore.Components.Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager navigationManager
 @inject ApplicationDbContext DbContext
@@ -215,10 +214,10 @@
                         <FluentGrid Style="width:100%">
                             <FluentGridItem lg="3" md="3" sm="3" xl="3" xs="3" xxl="3">
                             </FluentGridItem>
-                            <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-4);border-bottom-left-radius:10px;border-top-left-radius:10px;">
+                            <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-3);border-bottom-left-radius:10px;border-top-left-radius:10px;">
                                 <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
 
-                                    <FluentLabel Typo="Typography.Body" Color="Color.Accent">
+                                    <FluentLabel Typo="Typography.Body" Style="color:var(--accent-foreground-rest);">
                                         @*<div style="color:@DbContext.UserChatSetting.Where(x=> x.Id == @item.UserId).Select(x => x.BackGroundColor).FirstOrDefault()">*@@item.Body
                                         @*</div>*@
                                     </FluentLabel>
@@ -227,7 +226,7 @@
 
                             </FluentGridItem>
 
-                            <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-4);border-bottom-right-radius:10px;border-top-right-radius:10px;">
+                            <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-3);border-bottom-right-radius:10px;border-top-right-radius:10px;">
                                 <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
                                     <div>
                                         @{

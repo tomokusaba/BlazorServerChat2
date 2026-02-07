@@ -185,7 +185,7 @@ public class AiController(
     /// </summary>
     /// <returns>成功状態</returns>
     [HttpPost("clear-history")]
-    public ActionResult ClearHistory()
+    public async Task<ActionResult> ClearHistory()
     {
         var userName = User.Identity?.Name;
         if (string.IsNullOrEmpty(userName))
@@ -196,7 +196,7 @@ public class AiController(
         logger.LogInformation("Clearing chat history for user {UserName}", userName);
 
         // 共有履歴をクリア（現在の実装では全ユーザー共通）
-        agentLogic.Clear();
+        await agentLogic.ClearAsync();
 
         return Ok();
     }

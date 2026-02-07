@@ -100,13 +100,13 @@ public class ChatMcpTools
     /// </summary>
     [McpServerTool(Name = "ClearChatHistory")]
     [Description("ほのかとみずきのチャット履歴をクリアして、新しい会話を開始します。")]
-    public string ClearChatHistory()
+    public async Task<string> ClearChatHistory()
     {
         _logger.LogInformation("[MCP] ClearChatHistory called");
         
         try
         {
-            _agentLogic.Clear();
+            await _agentLogic.ClearAsync();
             return "チャット履歴をクリアしました！新しい会話を始められるよ〜✨";
         }
         catch (Exception ex)

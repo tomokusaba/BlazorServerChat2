@@ -36,7 +36,7 @@ namespace BlazorServerChat2.Data
         
         private AIAgent _agent = null!;
         private AIAgent _mizukiAgent = null!;
-        private AgentThread _thread = null!;
+        private AgentSession _session = null!;
         private SharedChatMessageStore _sharedChatStore = null!;
         private readonly List<AITool> _tools;
         private readonly string _systemPrompt;
@@ -98,13 +98,13 @@ namespace BlazorServerChat2.Data
             // 共有チャット履歴ストアを作成
             _sharedChatStore = new SharedChatMessageStore();
 
-            // ChatClientAgentOptionsを作成（ChatMessageStoreFactoryを設定）
+            // ChatClientAgentOptionsを作成（ChatHistoryProviderFactoryを設定）
             var honokaOptions = new ChatClientAgentOptions
             {
                 Name = "Honoka",
                 Description = "くだけた女性の口調で人に役立つ回答をするAIアシスタント",
                 // 共有チャット履歴ストアを使用
-                ChatMessageStoreFactory = ctx => _sharedChatStore,
+                ChatHistoryProviderFactory = (ctx, ct) => ValueTask.FromResult<ChatHistoryProvider>(_sharedChatStore),
                 // Instructions と Tools は ChatOptions 経由で設定
                 ChatOptions = new ChatOptions
                 {
@@ -118,7 +118,7 @@ namespace BlazorServerChat2.Data
                 Name = "Mizuki",
                 Description = "落ち着いた知的な女性の口調で丁寧に回答するAIアシスタント",
                 // 共有チャット履歴ストアを使用
-                ChatMessageStoreFactory = ctx => _sharedChatStore,
+                ChatHistoryProviderFactory = (ctx, ct) => ValueTask.FromResult<ChatHistoryProvider>(_sharedChatStore),
                 // Instructions と Tools は ChatOptions 経由で設定
                 ChatOptions = new ChatOptions
                 {
@@ -138,8 +138,8 @@ namespace BlazorServerChat2.Data
                 .UseOpenTelemetry(_hostEnvironment.ApplicationName)
                 .Build();
 
-            // 新しいスレッドを作成（共有ストアを使用するスレッド）
-            _thread = _agent.GetNewThread();
+            // 新しいセッションを作成（ファクトリ経由で共有ストアを使用）
+            _session = _agent.CreateSessionAsync().GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -255,9 +255,9 @@ namespace BlazorServerChat2.Data
         /// <summary>
         /// 会話履歴をクリアして新しいスレッドを開始する
         /// </summary>
-        public void Clear()
+        public async Task ClearAsync()
         {
-            _thread = _agent.GetNewThread();
+            _session = await _agent.CreateSessionAsync();
         }
 
         /// <summary>
@@ -320,7 +320,7 @@ namespace BlazorServerChat2.Data
                 // 各エージェントからの応答を監視
                 await foreach (WorkflowEvent evt in run.WatchStreamAsync().ConfigureAwait(false))
                 {
-                    if (evt is AgentRunUpdateEvent update)
+                    if (evt is AgentResponseUpdateEvent update)
                     {
                         // エージェントのストリーミングチャンクを蓄積
                         var agentName = update.ExecutorId;
@@ -329,7 +329,7 @@ namespace BlazorServerChat2.Data
                             agentResponses[agentName] = new System.Text.StringBuilder();
                         }
                         
-                        AgentRunResponse response = update.AsResponse();
+                        AgentResponse response = update.AsResponse();
                         foreach (ChatMessage message in response.Messages)
                         {
                             agentResponses[agentName].Append(message.Text ?? "");
@@ -453,7 +453,7 @@ namespace BlazorServerChat2.Data
             try
             {
                 // エージェントを実行して応答を取得
-                var response = await _agent.RunAsync(input, _thread);
+                var response = await _agent.RunAsync(input, _session);
 
                 stopwatch.Stop();
                 operation.Telemetry.Duration = stopwatch.Elapsed;
@@ -530,7 +530,7 @@ namespace BlazorServerChat2.Data
             int chunkCount = 0;
             int totalLength = 0;
 
-            await foreach (var update in _agent.RunStreamingAsync(input, _thread))
+            await foreach (var update in _agent.RunStreamingAsync(input, _session))
             {
                 if (!string.IsNullOrEmpty(update.Text))
                 {
@@ -563,7 +563,7 @@ namespace BlazorServerChat2.Data
 
             var responseBuilder = new System.Text.StringBuilder();
 
-            await foreach (var update in _agent.RunStreamingAsync(input, _thread))
+            await foreach (var update in _agent.RunStreamingAsync(input, _session))
             {
                 if (!string.IsNullOrEmpty(update.Text))
                 {
