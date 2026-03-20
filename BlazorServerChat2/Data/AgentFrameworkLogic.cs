@@ -104,7 +104,7 @@ namespace BlazorServerChat2.Data
                 Name = "Honoka",
                 Description = "くだけた女性の口調で人に役立つ回答をするAIアシスタント",
                 // 共有チャット履歴ストアを使用
-                ChatHistoryProviderFactory = (ctx, ct) => ValueTask.FromResult<ChatHistoryProvider>(_sharedChatStore),
+                ChatHistoryProvider = _sharedChatStore,
                 // Instructions と Tools は ChatOptions 経由で設定
                 ChatOptions = new ChatOptions
                 {
@@ -118,7 +118,7 @@ namespace BlazorServerChat2.Data
                 Name = "Mizuki",
                 Description = "落ち着いた知的な女性の口調で丁寧に回答するAIアシスタント",
                 // 共有チャット履歴ストアを使用
-                ChatHistoryProviderFactory = (ctx, ct) => ValueTask.FromResult<ChatHistoryProvider>(_sharedChatStore),
+                ChatHistoryProvider = _sharedChatStore,
                 // Instructions と Tools は ChatOptions 経由で設定
                 ChatOptions = new ChatOptions
                 {
@@ -257,6 +257,7 @@ namespace BlazorServerChat2.Data
         /// </summary>
         public async Task ClearAsync()
         {
+            _sharedChatStore.Clear();
             _session = await _agent.CreateSessionAsync();
         }
 
@@ -311,7 +312,7 @@ namespace BlazorServerChat2.Data
                     .Build();
 
                 // ストリーミング実行 - 各エージェントの完了を逐次的に取得
-                StreamingRun run = await InProcessExecution.StreamAsync(workflow, messages);
+                StreamingRun run = await InProcessExecution.RunStreamingAsync(workflow, messages);
                 await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
 
                 // 各エージェントの応答テキストを蓄積する辞書

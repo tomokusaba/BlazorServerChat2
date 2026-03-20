@@ -159,17 +159,9 @@ builder.Services.AddOpenTelemetry()
     .WithMetrics(metrics => metrics
         .AddMeter("*Microsoft.Agents.AI")
         .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation())
-    .UseAzureMonitor(options =>
-    {
-        if (!string.IsNullOrWhiteSpace(applicationInsightsConnectionString))
-        {
-            options.ConnectionString = applicationInsightsConnectionString;
-        }
-    });
+        .AddHttpClientInstrumentation());
 
 builder.Services.AddApplicationInsightsTelemetry();
-
 
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
@@ -230,7 +222,7 @@ var client = new AzureOpenAIClient(
     .UseOpenTelemetry(sourceName: openTelemetrySourceName, configure: (cfg) => cfg.EnableSensitiveData = true)
     .Build();
 builder.Services.AddSingleton<IChatClient>(client);
-builder.Services.AddSingleton<AgentFrameworkLogic>();
+builder.Services.AddScoped<AgentFrameworkLogic>();
 builder.Services.AddScoped<ScreenModePlugin>();
 builder.Services.AddScoped<WeatherPlugin>();
 

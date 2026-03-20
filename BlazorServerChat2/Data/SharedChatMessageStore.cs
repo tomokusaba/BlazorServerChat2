@@ -50,7 +50,7 @@ public sealed class SharedChatMessageStore : ChatHistoryProvider
     /// <summary>
     /// エージェント実行後にリクエスト/レスポンスメッセージを履歴に追加する
     /// </summary>
-    public override ValueTask InvokedAsync(
+    protected override ValueTask StoreChatHistoryAsync(
         ChatHistoryProvider.InvokedContext context,
         CancellationToken cancellationToken = default)
     {
@@ -101,7 +101,7 @@ public sealed class SharedChatMessageStore : ChatHistoryProvider
     /// <summary>
     /// エージェント実行前に履歴メッセージを取得する（昇順で返す）
     /// </summary>
-    public override ValueTask<IEnumerable<ChatMessage>> InvokingAsync(
+    protected override ValueTask<IEnumerable<ChatMessage>> ProvideChatHistoryAsync(
         ChatHistoryProvider.InvokingContext context,
         CancellationToken cancellationToken = default)
     {
@@ -117,14 +117,6 @@ public sealed class SharedChatMessageStore : ChatHistoryProvider
 
             return ValueTask.FromResult<IEnumerable<ChatMessage>>(result);
         }
-    }
-
-    /// <summary>
-    /// 状態をシリアル化する
-    /// </summary>
-    public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null)
-    {
-        return JsonSerializer.SerializeToElement(_threadKey, jsonSerializerOptions);
     }
 
     /// <summary>
