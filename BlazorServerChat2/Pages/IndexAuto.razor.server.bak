@@ -23,7 +23,7 @@
 @inject IDbContextFactory<ApplicationDbContext>? DbContextFactory
 @inject Room? RoomService
 @inject AuthenticationStateProvider? AuthStateProvider
-@inject AgentFrameworkLogic? AgentLogic
+@inject IAgentFrameworkLogic? AgentLogic
 @inject IHubContext<BlazorChatHub>? HubContext
 @implements IAsyncDisposable
 
