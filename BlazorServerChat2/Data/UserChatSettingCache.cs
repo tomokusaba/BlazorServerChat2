@@ -7,7 +7,7 @@ namespace BlazorServerChat2.Data;
 /// ユーザーチャット設定とアイコンマスタのキャッシュサービス
 /// DBアクセスを削減し、会話ごとのSQL Server負荷を軽減します 🚀
 /// </summary>
-public class UserChatSettingCache : IDisposable
+public class UserChatSettingCache : IUserChatSettingCache, IDisposable
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<UserChatSettingCache> _logger;

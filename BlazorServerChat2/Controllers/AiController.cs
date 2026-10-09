@@ -15,7 +15,7 @@ namespace BlazorServerChat2.Controllers;
 [Route("api/[controller]")]
 [Authorize(Policy = "ApiPolicy")]
 public class AiController(
-    AgentFrameworkLogic agentLogic,
+    IAgentFrameworkLogic agentLogic,
     ApplicationDbContext context,
     IHubContext<BlazorChatHub> hubContext,
     ILogger<AiController> logger) : ControllerBase

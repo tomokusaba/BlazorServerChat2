@@ -25,7 +25,7 @@ namespace BlazorServerChat2.Data
     /// dotnet add package Azure.AI.OpenAI --prerelease
     /// dotnet add package Azure.Identity
     /// </remarks>
-    public class AgentFrameworkLogic
+    public class AgentFrameworkLogic : IAgentFrameworkLogic
     {
         private readonly ILoggerFactory _logger;
         private readonly IConfiguration _configuration;

@@ -15,7 +15,7 @@ namespace BlazorServerChat2.Controllers;
 public class ChatController(
     ApplicationDbContext context,
     Room room,
-    UserChatSettingCache userChatSettingCache,
+    IUserChatSettingCache userChatSettingCache,
     ILogger<ChatController> logger) : ControllerBase
 {
     /// <summary>

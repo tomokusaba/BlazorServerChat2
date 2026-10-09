@@ -199,7 +199,7 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<ClientHub>();
 builder.Services.AddSingleton<Room>();
 builder.Services.AddSingleton<HttpClient>();
-builder.Services.AddSingleton<UserChatSettingCache>();
+builder.Services.AddSingleton<IUserChatSettingCache, UserChatSettingCache>();
 
 // InteractiveAuto用のHttpClient認証サポート
 builder.Services.AddHttpContextAccessor();
@@ -222,7 +222,7 @@ var client = new AzureOpenAIClient(
     .UseOpenTelemetry(sourceName: openTelemetrySourceName, configure: (cfg) => cfg.EnableSensitiveData = true)
     .Build();
 builder.Services.AddSingleton<IChatClient>(client);
-builder.Services.AddScoped<AgentFrameworkLogic>();
+builder.Services.AddScoped<IAgentFrameworkLogic, AgentFrameworkLogic>();
 builder.Services.AddScoped<ScreenModePlugin>();
 builder.Services.AddScoped<WeatherPlugin>();
 

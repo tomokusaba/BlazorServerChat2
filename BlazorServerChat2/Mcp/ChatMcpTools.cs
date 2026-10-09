@@ -11,10 +11,10 @@ namespace BlazorServerChat2.Mcp;
 [McpServerToolType]
 public class ChatMcpTools
 {
-    private readonly AgentFrameworkLogic _agentLogic;
+    private readonly IAgentFrameworkLogic _agentLogic;
     private readonly ILogger<ChatMcpTools> _logger;
 
-    public ChatMcpTools(AgentFrameworkLogic agentLogic, ILogger<ChatMcpTools> logger)
+    public ChatMcpTools(IAgentFrameworkLogic agentLogic, ILogger<ChatMcpTools> logger)
     {
         _agentLogic = agentLogic;
         _logger = logger;
