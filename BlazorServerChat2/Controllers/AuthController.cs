@@ -48,7 +48,7 @@ public class AuthController(JwtService jwtService) : ControllerBase
     /// トークンの有効性を確認 ✅
     /// </summary>
     [HttpGet("validate")]
-    [Authorize] // Cookie or JWT
+    [Authorize(Policy = "ApiPolicy")] // Cookie or JWT
     public ActionResult<ValidateResponse> ValidateToken()
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;

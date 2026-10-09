@@ -94,3 +94,102 @@ a, .btn-link {
         --mizuki-text: #b8ccff;
     }
 }
+
+/* チャット履歴（Index / IndexAutoClient 共通） */
+.page-column {
+    width: 100%;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 12px;
+    box-sizing: border-box;
+}
+
+.chat-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 8px 0;
+    box-sizing: border-box;
+}
+
+.chat-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.chat-row + .chat-row {
+    margin-top: 4px;
+}
+
+.chat-row.mine {
+    flex-direction: row-reverse;
+}
+
+.chat-row.notice {
+    align-items: center;
+}
+
+.chat-avatar {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-avatar img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-avatar .emoji {
+    font-size: 30px;
+    line-height: 1;
+}
+
+.chat-bubble {
+    max-width: min(75%, 480px);
+    padding: 8px 12px;
+    border-radius: 12px;
+    background-color: var(--colorNeutralBackground2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    word-break: break-word;
+}
+
+@media (max-width: 600px) {
+    .chat-bubble {
+        max-width: 82%;
+    }
+
+    .chat-list {
+        padding: 8px 0;
+    }
+}
+
+.chat-row.mine .chat-bubble {
+    background-color: var(--colorNeutralBackground3);
+}
+
+.chat-row.notice .chat-bubble {
+    max-width: calc(100% - 44px);
+}
+
+.chat-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 2px;
+}
+
+.chat-row.mine .chat-meta {
+    justify-content: flex-end;
+}
+
+.chat-body {
+    white-space: pre-wrap;
+}

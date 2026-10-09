@@ -55,15 +55,7 @@ namespace BlazorServerChat2.Data
         /// <param name="userid">入室したユーザID</param>
         public void SendMsg(string userid)
         {
-            if (room.ContainsKey(userid))
-            {
-                room.Remove(userid);
-                room.Add(userid, DateTime.Now);
-            }
-            else
-            {
-                room.Add(userid, DateTime.Now);
-            }
+            room[userid] = DateTime.Now;
             roomCount = room.Count;
             //NotifyStateChanged();
             roomNames = GetRoomIds();

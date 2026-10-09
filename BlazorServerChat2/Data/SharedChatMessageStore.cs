@@ -67,7 +67,7 @@ public sealed class SharedChatMessageStore : ChatHistoryProvider
                 });
             }
             // レスポンスメッセージを追加
-            foreach (var message in context.ResponseMessages)
+            foreach (var message in context.ResponseMessages ?? [])
             {
                 _messages.Add(new ChatMessageRecord
                 {

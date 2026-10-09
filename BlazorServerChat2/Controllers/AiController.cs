@@ -13,7 +13,7 @@ namespace BlazorServerChat2.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = "ApiPolicy")]
 public class AiController(
     AgentFrameworkLogic agentLogic,
     ApplicationDbContext context,

@@ -18,21 +18,20 @@
 @implements IAsyncDisposable
 
 <PageTitle>あびや</PageTitle>
-<FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="20">
+<div class="page-column"><FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="20">
     <FluentLabel Typo="Typography.PageTitle">あびやチャット</FluentLabel>
     
     <FluentCard Width="50%">
-        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" HorizontalGap="30">
-            <FluentCounterBadge Count="@Kingaku" Appearance="Appearance.Accent" Max="9000000">
-                <FluentButton AriaLabel="ユーザー情報を表示">
-                    <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size24.PersonChat())" Color="@Color.Accent" />
-                </FluentButton>
-            </FluentCounterBadge>
+        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" HorizontalGap="16" VerticalAlignment="VerticalAlignment.Center" Wrap="true">
+            <FluentBadge Content="@Kingaku.ToString()" Appearance="BadgeAppearance.Filled" Color="BadgeColor.Brand" />
+            <FluentButton Appearance="ButtonAppearance.Subtle" AriaLabel="ユーザー情報を表示">
+                <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size24.PersonChat())" Color="@Color.Primary" />
+            </FluentButton>
             <span>ログインユーザ： <b>@_username</b>さん</span>
-            <FluentBadge Appearance="Appearance.Neutral">@(_isWasm ? "WASM 🌐" : "Server 🖥️")</FluentBadge>
-            <FluentButton Appearance="Appearance.Neutral" OnClick="DisconnectAsync" AriaLabel="チャットを退室する">退室</FluentButton>
+            <FluentBadge Appearance="BadgeAppearance.Filled">@(_isWasm ? "WASM 🌐" : "Server 🖥️")</FluentBadge>
+            <FluentButton Appearance="ButtonAppearance.Default" OnClick="DisconnectAsync" AriaLabel="チャットを退室する">退室</FluentButton>
         </FluentStack><br />
-        <FluentAnchor Href="log" Appearance="Appearance.Hypertext" AriaLabel="これまでのお話しを表示">これまでのお話し</FluentAnchor><br />
+        <FluentLink Href="log" Appearance="LinkAppearance.Default" AriaLabel="これまでのお話しを表示">これまでのお話し</FluentLink><br />
         <span>
             たぶん　@roomStatus?.RoomCount 人在室中
             @if (roomStatus?.RoomNames != null)
@@ -48,54 +47,48 @@
     <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Left">
         <FluentGrid Style="width:100%">
             <FluentGridItem xs="8" Style="align-items:center;display:flex;">
-                <FluentTextField @ref="fluentTextField"
+                <FluentTextInput @ref="fluentTextField"
                                  AutoComplete="on"
                                  Id="ChatComment"
                                  Name="ChatComment"
-                                 TextFieldType="TextFieldType.Text"
+                                 TextInputType="TextInputType.Text"
                                  style="width:80%;"
                                  Placeholder="コメント入力欄"
                                  Label="コメント入力"
                                  AriaLabel="ここにチャットで発言するコメントを入力してください"
                                  @bind-Value="_newMessage"
                                  @onkeydown="HandleKeyDown">
-                </FluentTextField>&nbsp;
+                </FluentTextInput>&nbsp;
             </FluentGridItem>
             <FluentGridItem xs="4">
                 <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="5">
-                    <FluentButton Appearance="Appearance.Accent" OnClick="@(s => SendAsync(_newMessage))" AriaLabel="発言するときはこのボタンを押してください" Disabled="@(!_isChatting)">発言</FluentButton>
-                    <FluentButton Appearance="Appearance.Neutral" OnClick="@(s => TalkHonoka(_newMessage))" Disabled="@(!_isChatting)" AriaLabel="ほのかさんに話しかける">ほのかさんに話しかける</FluentButton>
-                    <FluentButton Appearance="Appearance.Outline" OnClick="@(s => TalkGroupChat(_newMessage))" Disabled="@(!_isChatting)" AriaLabel="ほのかさんとみずきさんに話しかける">ほのか＆みずきと話す</FluentButton>
-                    <FluentButton Appearance="Appearance.Neutral" OnClick="NetaAsync" Disabled="@(!_isChatting)" AriaLabel="ネタをもらう">ネタをもらう</FluentButton>
+                    <FluentButton Appearance="ButtonAppearance.Primary" OnClick="@(s => SendAsync(_newMessage))" AriaLabel="発言するときはこのボタンを押してください" Disabled="@(!_isChatting)">発言</FluentButton>
+                    <FluentButton Appearance="ButtonAppearance.Default" OnClick="@(s => TalkHonoka(_newMessage))" Disabled="@(!_isChatting)" AriaLabel="ほのかさんに話しかける">ほのかさんに話しかける</FluentButton>
+                    <FluentButton Appearance="ButtonAppearance.Outline" OnClick="@(s => TalkGroupChat(_newMessage))" Disabled="@(!_isChatting)" AriaLabel="ほのかさんとみずきさんに話しかける">ほのか＆みずきと話す</FluentButton>
+                    <FluentButton Appearance="ButtonAppearance.Default" OnClick="NetaAsync" Disabled="@(!_isChatting)" AriaLabel="ネタをもらう">ネタをもらう</FluentButton>
                 </FluentStack>
                 @if (!_isChatting)
                 {
-                    <FluentBadge Appearance="Appearance.Accent" role="status" aria-live="polite">SignalR接続中...</FluentBadge>
+                    <FluentBadge Appearance="BadgeAppearance.Filled" role="status" aria-live="polite">SignalR接続中...</FluentBadge>
                 }
             </FluentGridItem>
         </FluentGrid>
     </FluentStack>
 
-    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="20">
+    <div class="chat-list">
         @if (_isLoadingHistory)
         {
             @for (int i = 0; i < 5; i++)
             {
-                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalGap="10">
-                    <FluentGrid Style="width:100%">
-                        <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-2);border-bottom-left-radius:10px;border-top-left-radius:10px;padding:8px;">
-                            <FluentSkeleton Shape="SkeletonShape.Circle" Width="48px" Height="48px" Shimmer="true" />
-                        </FluentGridItem>
-                        <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-2);border-bottom-right-radius:10px;border-top-right-radius:10px;padding:8px;">
-                            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="8">
-                                <FluentSkeleton Shape="SkeletonShape.Rect" Width="60%" Height="20px" Shimmer="true" />
-                                <FluentSkeleton Shape="SkeletonShape.Rect" Width="80%" Height="16px" Shimmer="true" />
-                                <FluentSkeleton Shape="SkeletonShape.Rect" Width="30%" Height="14px" Shimmer="true" />
-                            </FluentStack>
-                        </FluentGridItem>
-                    </FluentGrid>
-                </FluentStack>
-                <FluentDivider Role="DividerRole.Presentation" />
+                <div class="chat-row other">
+                    <div class="chat-avatar">
+                        <FluentSkeleton Shape="SkeletonShape.Circle" Width="36px" Height="36px" Shimmer="true" />
+                    </div>
+                    <div class="chat-bubble">
+                        <FluentSkeleton Shape="SkeletonShape.Rect" Width="60%" Height="16px" Shimmer="true" />
+                        <FluentSkeleton Shape="SkeletonShape.Rect" Width="80%" Height="14px" Shimmer="true" />
+                    </div>
+                </div>
             }
         }
         else
@@ -104,96 +97,61 @@
             {
                 @if (item.IsNotice)
                 {
-                    @* AIエージェント/システムメッセージ - 左寄せ、エージェントアイコン表示 *@
-                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal">
-                        <FluentGrid Style="width:100%">
-                            <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="@($"{item.NoticeStyle}border-bottom-left-radius:10px;border-top-left-radius:10px;")">
-                                @if (item.IsHonoka)
-                                {
-                                    <span style="font-size:48px;" role="img" aria-label="ほのか">💁‍♀️</span>
-                                }
-                                else if (item.IsMizuki)
-                                {
-                                    <span style="font-size:48px;" role="img" aria-label="みずき">👩‍🏫</span>
-                                }
-                                else
-                                {
-                                    <FluentEmoji Value="@(new Microsoft.FluentUI.AspNetCore.Components.Emojis.Objects.Color.Default.BlackNib())" Width="64px" />
-                                }
-                            </FluentGridItem>
-                            <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="@($"{item.NoticeStyle}border-bottom-right-radius:10px;border-top-right-radius:10px;")">
-                                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
-                                    <FluentLabel Typo="Typography.Body" Style="@($"color:{item.NoticeTextColor};")">@((MarkupString)item.Body)</FluentLabel>
-                                    <FluentLabel Typo="Typography.Body" Style="@($"color:{item.NoticeTextColor};")">@item.PostTime.ToString()</FluentLabel>
-                                </FluentStack>
-                            </FluentGridItem>
-                        </FluentGrid>
-                    </FluentStack>
+                    <div class="chat-row notice">
+                        <div class="chat-avatar">
+                            @if (item.IsHonoka)
+                            {
+                                <span class="emoji" role="img" aria-label="ほのか">💁‍♀️</span>
+                            }
+                            else if (item.IsMizuki)
+                            {
+                                <span class="emoji" role="img" aria-label="みずき">👩‍🏫</span>
+                            }
+                            else
+                            {
+                                <FluentEmoji Value="@(new Microsoft.FluentUI.AspNetCore.Components.Emojis.Objects.Color.Default.BlackNib())" Width="36px" />
+                            }
+                        </div>
+                        <div class="chat-bubble" style="@($"{item.NoticeStyle}")">
+                            <div class="chat-body" style="@($"color:{item.NoticeTextColor};")">@((MarkupString)item.Body)</div>
+                            <div class="chat-meta" style="@($"color:{item.NoticeTextColor};")"><span>@item.PostTime.ToString()</span></div>
+                        </div>
+                    </div>
+                }
+                else if (item.Mine)
+                {
+                    <div class="chat-row mine">
+                        <div class="chat-avatar">
+                            @if (!string.IsNullOrEmpty(item.IconBase64))
+                            {
+                                <img src="data:image/png;base64,@item.IconBase64" alt="@($"{item.Username} のアイコン")" />
+                            }
+                        </div>
+                        <div class="chat-bubble">
+                            <div class="chat-body">@item.Body</div>
+                            <div class="chat-meta"><span>@item.PostTime.ToString()</span></div>
+                        </div>
+                    </div>
                 }
                 else
                 {
-                    @if (item.Mine)
-                    {
-                        @* 自分のメッセージ - 右寄せ、アイコン右側 *@
-                        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
-                                     VerticalAlignment="VerticalAlignment.Center"
-                                     HorizontalAlignment="HorizontalAlignment.Center">
-                            <FluentGrid Style="width:100%">
-                                <FluentGridItem lg="3" md="3" sm="3" xl="3" xs="3" xxl="3">
-                                </FluentGridItem>
-                                <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-4);border-bottom-left-radius:10px;border-top-left-radius:10px;">
-                                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
-                                        <FluentLabel Typo="Typography.Body" Color="Color.Accent">@item.Body</FluentLabel>
-                                        <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
-                                    </FluentStack>
-                                </FluentGridItem>
-                                <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-4);border-bottom-right-radius:10px;border-top-right-radius:10px;">
-                                    <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
-                                        <div>
-                                            @if (!string.IsNullOrEmpty(item.IconBase64))
-                                            {
-                                                <img src="data:image/png;base64,@item.IconBase64" alt="@($"{item.Username} のアイコン")" />
-                                            }
-                                        </div>
-                                    </FluentStack>
-                                </FluentGridItem>
-                            </FluentGrid>
-                        </FluentStack>
-                    }
-                    else
-                    {
-                        @* 他人のメッセージ - 左寄せ、アイコン左側、Username表示 *@
-                        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
-                            <FluentGrid Style="width:100%">
-                                <FluentGridItem lg="1" md="1" sm="1" xl="1" xs="1" xxl="1" Style="background-color:var(--neutral-layer-2);border-bottom-left-radius:10px;border-top-left-radius:10px;">
-                                    <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Center">
-                                        <div>
-                                            @if (!string.IsNullOrEmpty(item.IconBase64))
-                                            {
-                                                <img src="data:image/png;base64,@item.IconBase64" alt="@($"{item.Username} のアイコン")" />
-                                            }
-                                        </div>
-                                    </FluentStack>
-                                </FluentGridItem>
-                                <FluentGridItem lg="8" md="8" sm="8" xl="8" xs="8" xxl="8" Style="background-color:var(--neutral-layer-2);border-bottom-right-radius:10px;border-top-right-radius:10px;">
-                                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left">
-                                        <FluentLabel Typo="Typography.Body">
-                                            @item.Username :
-                                            @item.Body
-                                        </FluentLabel>
-                                        <FluentLabel Typo="Typography.Body">@item.PostTime.ToString()</FluentLabel>
-                                    </FluentStack>
-                                </FluentGridItem>
-                            </FluentGrid>
-                        </FluentStack>
-                    }
+                    <div class="chat-row other">
+                        <div class="chat-avatar">
+                            @if (!string.IsNullOrEmpty(item.IconBase64))
+                            {
+                                <img src="data:image/png;base64,@item.IconBase64" alt="@($"{item.Username} のアイコン")" />
+                            }
+                        </div>
+                        <div class="chat-bubble">
+                            <div class="chat-meta"><span>@item.Username</span><span>@item.PostTime.ToString()</span></div>
+                            <div class="chat-body">@item.Body</div>
+                        </div>
+                    </div>
                 }
-                <FluentDivider Role="DividerRole.Presentation" />
             }
         }
-    </FluentStack>
-</FluentStack>
-
+    </div>
+</FluentStack></div>
 @code {
     // パラメータ（サーバー側から受け取る）🔐
     [Parameter] public string? InitialJwtToken { get; set; }
@@ -209,7 +167,7 @@
     private bool _isLoadingHistory = true;
     private bool _isChatting = false;
     private RoomStatusDto? roomStatus;
-    private FluentTextField? fluentTextField;
+    private FluentTextInput? fluentTextField;
     private Dictionary<string, string> _userIconCache = [];
     private bool _initialized = false;
     private bool _isWasm = false;
@@ -252,8 +210,16 @@
                 await LoadUserFromAuthStateAsync();
             }
             
-            await LoadInitialData();
-            Console.WriteLine($"IndexAutoClient: LoadInitialData completed. Messages count: {_messages.Count}");
+            try
+            {
+                await LoadInitialData();
+                Console.WriteLine($"IndexAutoClient: LoadInitialData completed. Messages count: {_messages.Count}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"IndexAutoClient: LoadInitialData failed: {ex}");
+            }
+
             await InitializeSignalR();
             Console.WriteLine("IndexAutoClient: InitializeSignalR completed.");
             StateHasChanged();
@@ -741,10 +707,10 @@
         {
             get
             {
-                if (IsHonoka) return "color-mix(in srgb, var(--accent-fill-rest) 15%, var(--neutral-layer-1))";
-                if (IsMizuki) return "var(--neutral-layer-3)";
-                if (IsSystem) return "var(--warning-fill-rest, var(--neutral-layer-floating))";
-                return "var(--neutral-layer-2)";
+                if (IsHonoka) return "color-mix(in srgb, var(--colorBrandBackground) 15%, var(--colorNeutralBackground1))";
+                if (IsMizuki) return "var(--colorNeutralBackground3)";
+                if (IsSystem) return "var(--colorPaletteYellowBackground1, var(--colorNeutralBackgroundStatic))";
+                return "var(--colorNeutralBackground2)";
             }
         }
 
@@ -752,15 +718,15 @@
         {
             get
             {
-                if (IsHonoka) return "var(--accent-foreground-rest)";
-                if (IsMizuki) return "var(--neutral-foreground-rest)";
-                if (IsSystem) return "var(--neutral-foreground-hint)";
-                return "var(--neutral-foreground-rest)";
+                if (IsHonoka) return "var(--colorBrandForeground1)";
+                                if (IsMizuki) return "var(--colorNeutralForeground1)";
+                                if (IsSystem) return "var(--colorNeutralForeground3)";
+                                return "var(--colorNeutralForeground1)";
             }
         }
 
         public string NoticeStyle => $"background-color:{NoticeBackgroundColor};color:{NoticeTextColor};padding:8px;";
-        public string UserBackgroundColor => Mine ? "var(--neutral-layer-4)" : "var(--neutral-layer-2)";
+        public string UserBackgroundColor => Mine ? "var(--colorNeutralBackground4)" : "var(--colorNeutralBackground2)";
         public string DisplayStyle => IsNotice ? NoticeStyle : $"background-color:{UserBackgroundColor};padding:8px;";
         public string CSS => Mine ? "sent" : "received";
         

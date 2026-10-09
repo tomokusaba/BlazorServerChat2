@@ -125,10 +125,10 @@ builder.Services.AddAuthentication()
         };
     });
 
-// 認証ポリシー: Cookie認証が優先（デフォルト）、APIはJWTも許可
+// 認証ポリシー: APIはCookie（ブラウザ）またはJWT（サーバー側HttpClient）を許可
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("ApiPolicy", policy =>
-        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, IdentityConstants.ApplicationScheme)
               .RequireAuthenticatedUser());
 
 // JWTサービスを登録

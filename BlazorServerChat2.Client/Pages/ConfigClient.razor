@@ -12,20 +12,21 @@
 <PageTitle>あびや設定</PageTitle>
 
 <FluentLabel Typo="Typography.PageTitle">あびやアイコン設定</FluentLabel>
-<FluentBadge Appearance="Appearance.Neutral">@(_isWasm ? "WASM 🌐" : "Server 🖥️")</FluentBadge>
+<FluentBadge Appearance="BadgeAppearance.Filled">@(_isWasm ? "WASM 🌐" : "Server 🖥️")</FluentBadge>
 
 @if (isLoading)
 {
-    <FluentProgressRing role="status" aria-label="読み込み中" />
+    <FluentSpinner role="status" aria-label="読み込み中" />
 }
 else
 {
     <FluentStack Orientation="Orientation.Vertical" VerticalGap="20">
-        <FluentSelect TOption="IconDto" 
-                  Items="@iconMasters" 
+        <FluentSelect TOption="IconDto"
+                  TValue="string"
+                  Items="@iconMasters"
                   OptionValue="@(i => i.IconNumber.ToString())"
                   OptionText="@(i => i.IconName)"
-                  @bind-SelectedOption="@selectedIcon"
+                  Value="@selectedIconValue"
                   ValueChanged="@OnIconChanged"
                   Label="アイコン選択"
                   AriaLabel="アイコン選択" />
@@ -35,12 +36,12 @@ else
             <img src="data:image/png;base64,@selectedIconBase64" style="max-width: 100px;" alt="選択中のアイコン" />
         }
         
-        <FluentTextField @bind-Value="@color" Label="背景色 (RGB形式)" Placeholder="rgb(0,0,0)" AriaLabel="背景色の入力" />
+        <FluentTextInput @bind-Value="@color" Label="背景色 (RGB形式)" Placeholder="rgb(0,0,0)" AriaLabel="背景色の入力" />
         
-        <FluentButton Appearance="Appearance.Accent" OnClick="@SaveColor" Disabled="@isSaving" AriaLabel="設定を保存">
+        <FluentButton Appearance="ButtonAppearance.Primary" OnClick="@SaveColor" Disabled="@isSaving" AriaLabel="設定を保存">
             @if (isSaving)
             {
-                <FluentProgressRing Style="width: 16px; height: 16px;" role="status" aria-label="保存中" />
+                <FluentSpinner Size="SpinnerSize.Tiny" role="status" aria-label="保存中" />
             }
             保存
         </FluentButton>
@@ -52,6 +53,7 @@ else
 
     private List<IconDto>? iconMasters;
     private IconDto? selectedIcon;
+    private string? selectedIconValue;
     private int selectedIconNumber;
     private string color = "rgb(0,0,0)";
     private string? selectedIconBase64;
@@ -84,6 +86,7 @@ else
                 
                 // 選択中のアイコンを設定
                 selectedIcon = iconMasters?.FirstOrDefault(i => i.IconNumber == selectedIconNumber);
+                selectedIconValue = selectedIcon?.IconNumber.ToString();
                 selectedIconBase64 = selectedIcon?.IconBase64;
             }
         }
@@ -101,6 +104,7 @@ else
     {
         if (int.TryParse(value, out var iconNumber))
         {
+            selectedIconValue = value;
             selectedIconNumber = iconNumber;
             selectedIcon = iconMasters?.FirstOrDefault(i => i.IconNumber == selectedIconNumber);
             selectedIconBase64 = selectedIcon?.IconBase64;

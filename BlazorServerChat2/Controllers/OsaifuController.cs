@@ -12,7 +12,7 @@ namespace BlazorServerChat2.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = "ApiPolicy")]
 public class OsaifuController(
     ApplicationDbContext context,
     ILogger<OsaifuController> logger) : ControllerBase

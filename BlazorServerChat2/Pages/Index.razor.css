@@ -2,7 +2,7 @@
 ::deep .group-chat {
     padding: 16px;
     border-radius: 8px;
-    background-color: var(--neutral-layer-2);
+    background-color: var(--colorNeutralBackground2);
     margin: 8px 0;
 }
 
@@ -28,3 +28,4 @@
     display: block;
     margin-bottom: 4px;
 }
+

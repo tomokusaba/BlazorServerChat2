@@ -198,6 +198,28 @@ namespace BlazorServerChat2.Data
         }
 
         /// <summary>
+        /// 履歴メッセージを追加（スレッドセーフ）
+        /// </summary>
+        public void AddMessage(Message message)
+        {
+            lock (_messagesLock)
+            {
+                _messages.Add(message);
+            }
+        }
+
+        /// <summary>
+        /// メッセージリストを全消去（スレッドセーフ）
+        /// </summary>
+        public void ClearMessages()
+        {
+            lock (_messagesLock)
+            {
+                _messages.Clear();
+            }
+        }
+
+        /// <summary>
         /// 変更通知イベント
         /// </summary>
         private void NotifyStateChanged() => OnChange?.Invoke();

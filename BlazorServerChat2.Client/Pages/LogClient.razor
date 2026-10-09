@@ -9,21 +9,21 @@
 @inject NavigationManager NavigationManager
 
 <FluentLabel Typo="Typography.Subject">あびやログ</FluentLabel>
-<FluentBadge Appearance="Appearance.Neutral">@(_isWasm ? "WASM 🌐" : "Server 🖥️")</FluentBadge>
+<FluentBadge Appearance="BadgeAppearance.Filled">@(_isWasm ? "WASM 🌐" : "Server 🖥️")</FluentBadge>
 
 @if (isLoading)
 {
-    <FluentProgressRing role="status" aria-label="読み込み中" />
+    <FluentSpinner role="status" aria-label="読み込み中" />
 }
 else if (!string.IsNullOrEmpty(_errorMessage))
 {
-    <FluentMessageBar Title="エラー" Intent="MessageIntent.Error">
+    <FluentMessageBar Title="エラー" Intent="MessageBarIntent.Error">
         @_errorMessage
     </FluentMessageBar>
 }
 else if (chats == null || chats.Count == 0)
 {
-    <FluentMessageBar Title="情報" Intent="MessageIntent.Info">
+    <FluentMessageBar Title="情報" Intent="MessageBarIntent.Info">
         ログデータがありません 📭
     </FluentMessageBar>
 }

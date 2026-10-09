@@ -1,4 +1,5 @@
-@* テーマスイッチ - 純粋なJSで動作（rendermodeを指定しないことでAutoモードのWASM移行を妨げない）*@
+@* テーマスイッチ - IThemeService（Fluent UI）でダーク/ライトを切り替える。静的SSRページでも動くようInteractiveServerを指定 *@
+@rendermode InteractiveServer
 @* CSSでスイッチ風デザインを実現 *@
 
 <style>
@@ -7,7 +8,7 @@
         align-items: center;
         gap: 8px;
         cursor: pointer;
-        color: var(--foreground-on-accent-rest);
+        color: #ffffff;
         user-select: none;
     }
     
@@ -54,25 +55,31 @@
     }
 </style>
 
+@inject IThemeService ThemeService
+
 <label class="theme-switch">
-    <input type="checkbox" id="theme-toggle" onchange="toggleTheme(this.checked)" role="switch" aria-label="テーマ切り替え" />
+    <input type="checkbox" role="switch" aria-label="テーマ切り替え" checked="@_isDark" @onchange="OnToggleAsync" />
     <span class="slider" aria-hidden="true"></span>
-    <span id="theme-label">☀️ Light</span>
+    <span>@(_isDark ? "🌙 Dark" : "☀️ Light")</span>
 </label>
 
-@* ページ読み込み/遷移時に即座にlocalStorageから状態を復元 *@
-<script>
-    (function() {
-        try {
-            var saved = localStorage.getItem('theme');
-            if (saved) {
-                var theme = JSON.parse(saved);
-                var isDark = theme.mode === 'dark';
-                var checkbox = document.getElementById('theme-toggle');
-                var label = document.getElementById('theme-label');
-                if (checkbox) checkbox.checked = isDark;
-                if (label) label.textContent = isDark ? '🌙 Dark' : '☀️ Light';
-            }
-        } catch (e) {}
-    })();
-</script>
+@code {
+    private bool _isDark;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDark = await ThemeService.IsDarkModeAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnToggleAsync(ChangeEventArgs e)
+    {
+        _isDark = e.Value is bool isChecked && isChecked;
+        MainLayout.DarkMode = _isDark;
+        MainLayout.RaiseDarkModeChanged();
+        await ThemeService.SetThemeAsync(_isDark ? ThemeMode.Dark : ThemeMode.Light);
+    }
+}

@@ -1,8 +1,6 @@
 ﻿using BlazorServerChat2;
 using BlazorServerChat2.Shared;
 using Microsoft.AspNetCore.Components;
-using Microsoft.FluentUI.AspNetCore.Components.DesignTokens;
-using Microsoft.SemanticKernel;
 using System.ComponentModel;
 
 namespace BlazorApp31.Plugin;

@@ -109,7 +109,8 @@ namespace BlazorServerChat2.Data
                 ChatOptions = new ChatOptions
                 {
                     Instructions = _systemPrompt,
-                    Tools = [.. _tools]
+                    Tools = [.. _tools],
+                    RawRepresentationFactory = _ => CreateNoReasoningOptions()
                 }
             };
 
@@ -123,7 +124,8 @@ namespace BlazorServerChat2.Data
                 ChatOptions = new ChatOptions
                 {
                     Instructions = _mizukiSystemPrompt,
-                    Tools = [.. _tools]
+                    Tools = [.. _tools],
+                    RawRepresentationFactory = _ => CreateNoReasoningOptions()
                 }
             };
 
@@ -146,6 +148,15 @@ namespace BlazorServerChat2.Data
         /// 関数ツールのリストを作成する
         /// SemanticKernelLogicのプラグインに対応
         /// </summary>
+        // gpt-6-luna の推論を無効化（reasoning_effort = none）
+        // ReasoningEffortLevel は OpenAI SDK の評価目的 API のため警告を局所的に抑制
+#pragma warning disable OPENAI001
+        private static OpenAI.Chat.ChatCompletionOptions CreateNoReasoningOptions() => new()
+        {
+            ReasoningEffortLevel = new OpenAI.Chat.ChatReasoningEffortLevel("none")
+        };
+#pragma warning restore OPENAI001
+
         private List<AITool> CreateTools()
         {
             var tools = new List<AITool>();

@@ -1,4 +1,3 @@
-﻿using Microsoft.SemanticKernel;
 using System.ComponentModel;
 
 namespace BlazorServerChat2.Data.Plugin;
